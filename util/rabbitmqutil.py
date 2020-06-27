@@ -1,0 +1,83 @@
+import pika
+
+
+def connect(queue_name, user, pwd, host, port, exchange=None, exchange_type=None):
+    """
+    连接rabbitmq
+    :param queue_name:
+    :param user:
+    :param pwd:
+    :param host:
+    :param port:
+    :param exchange:
+    :param exchange_type:
+    :return:
+    """
+    credentials = pika.PlainCredentials(user, pwd)
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(host=host, port=port,
+                                  virtual_host='pycrawler',
+                                  credentials=credentials))
+    channel = connection.channel()
+    if exchange_type is None:
+        channel.queue_declare(queue=queue_name, durable=True)
+    else:
+        channel.exchange_declare(exchange=exchange, exchange_type=exchange_type, durable=True)
+        if not queue_name.__eq__(''):
+            channel.queue_declare(queue=queue_name, durable=True)
+            channel.queue_bind(exchange=exchange, queue=queue_name)
+    return channel
+
+
+def send_data(channel, exchange, message, routing_key):
+    """
+    向rabitmq中发送数据
+    :param channel:
+    :param exchange:
+    :param message:
+    :param routing_key:
+    :return:
+    """
+    try:
+        channel.basic_publish(exchange=exchange, routing_key=routing_key, body=message,
+                              properties=pika.BasicProperties(delivery_mode=2))
+    except Exception as e:
+        print("数据发送失败： {}".format(e))
+        return False
+    return True
+
+
+def get_data(channel, routing_key, no_ack=None):
+    """
+    获取rabitmq中的数据
+    :param channel:
+    :param routing_key:
+    :param no_ack:
+    :return:
+    """
+
+    def _get_data(call_back):
+        """
+        获取回调函数
+        :param call_back:
+        :return:
+        """
+
+        def do_data(*args, **kwargs):
+            """
+            执行回调函数，获取数据
+            :param args:
+            :param kwargs:
+            :return:
+            """
+            # no_ack 是rabbitmq中用来判断是否保留任务，True为不保留， False为保留
+            if no_ack is not None:
+                channel.basic_qos(prefetch_count=1)
+                channel.basic_consume(routing_key, call_back, no_ack=False)
+            else:
+                channel.basic_consume(routing_key, call_back)
+            channel.start_consuming()
+
+        return do_data
+
+    return _get_data
