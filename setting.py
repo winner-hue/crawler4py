@@ -3,12 +3,12 @@ import os
 from util.sqlutil import MySql
 
 setting = {
-    "crawler_mode": 1,  # 爬虫模式， 1表示集群， 0表示不启用集群模式
+    "crawler_mode": 0,  # 爬虫模式， 1表示集群， 0表示不启用集群模式
     "mongo": {
         # 初始化mongo排重库
         "mongo_dup": {
-            "user": None,
-            "pwd": None,
+            "user": 1,
+            "pwd": 1,
             "host": "127.0.0.1",
             "port": 27017
         },
@@ -30,8 +30,8 @@ setting = {
     "logger_path": "{}{}logging.json".format(os.path.dirname(__file__), os.sep),
     "sql": {
         "driver": MySql,
-        "user": "",
-        "pwd": "",
+        "user": "root",
+        "pwd": "root",
         "host": "127.0.0.1",
         "port": 3306,
         "db": "pycrawler"

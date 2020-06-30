@@ -6,8 +6,6 @@ from log import Logger
 
 class SqlUtil(object):
     __instance = None
-    conn = None
-    cursor = None
 
     def __init__(self):
         if self.__instance:
@@ -18,7 +16,9 @@ class SqlUtil(object):
     @classmethod
     def get_instance(cls, **kwargs):
         if not cls.__instance:
+            Logger.logger.info("数据库开始进行初始化")
             cls.__instance = kwargs.get("driver")(**kwargs)
+            Logger.logger.info("数据库初始化成功")
         return cls.__instance
 
     def insert(self):
@@ -35,6 +35,9 @@ class SqlUtil(object):
 
 
 class MySql(SqlUtil):
+    conn = None
+    cursor = None
+
     def __init__(self, **kwargs):
         super(MySql, self).__init__()
         user = kwargs.get("user")
@@ -45,17 +48,21 @@ class MySql(SqlUtil):
         pool = PooledDB(pymysql, mincached=1, maxcached=1, maxconnections=3, host=host, user=user, password=pwd,
                         database=db, port=port, cursorclass=pymysql.cursors.DictCursor,
                         setsession=['SET AUTOCOMMIT = 1'])
-        MySql.conn = pool.connection()
-        MySql.cursor = MySql.conn.cursor(pymysql.cursors.DictCursor)
+        conn = pool.connection()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-    def insert(self):
+    @classmethod
+    def insert(cls):
         pass
 
-    def update(self):
+    @classmethod
+    def update(cls):
         pass
 
-    def delete(self):
+    @classmethod
+    def delete(cls):
         pass
 
-    def select(self):
+    @classmethod
+    def select(cls):
         pass
