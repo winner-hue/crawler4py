@@ -3,7 +3,7 @@ import os
 from util.sqlutil import MySql
 
 setting = {
-    "crawler_mode": 0,  # 爬虫模式， 1表示集群， 0表示不启用集群模式
+    "crawler_mode": 0,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
     "mongo": {
         # 初始化mongo排重库
         "mongo_dup": {
