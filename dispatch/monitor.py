@@ -13,6 +13,7 @@ from util.mongoutil import MongoUtil
 
 class Monitor(object):
     __instance = None
+    lock = threading.Lock()
 
     def __init__(self):
         if Monitor.__instance:
@@ -23,8 +24,10 @@ class Monitor(object):
     @classmethod
     def get_instance(cls):
         if not cls.__instance:
+            cls.lock.acquire()
             cls.__instance = Monitor()
             Logger.logger.info("monitor初始化成功")
+            cls.lock.release()
         return cls.__instance
 
     @staticmethod

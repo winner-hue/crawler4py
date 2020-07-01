@@ -1,3 +1,5 @@
+from threading import Lock
+
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
@@ -86,6 +88,7 @@ class MongoUtil(object):
     __instance = None
     dup: Collection
     monitor: Database
+    lock = Lock()
 
     def __init__(self):
         if not MongoUtil.__instance:
@@ -95,11 +98,15 @@ class MongoUtil(object):
 
     @classmethod
     def get_instance(cls, **setting):
-        if not cls.__instance:
-            cls.__instance = MongoUtil()
-            cls.dup, cls.monitor = Mongo.get_instance(**setting).get_params()
-            Logger.logger.info("MongoUtil实例创建成功")
-        return cls.__instance
+        if MongoUtil.__instance:
+            return MongoUtil.__instance
+
+        with MongoUtil.lock:
+            if not cls.__instance:
+                cls.__instance = MongoUtil()
+                cls.dup, cls.monitor = Mongo.get_instance(**setting).get_params()
+                Logger.logger.info("MongoUtil实例创建成功")
+            return cls.__instance
 
     @classmethod
     def insert_one(cls, params: dict):

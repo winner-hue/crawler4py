@@ -1,3 +1,5 @@
+from threading import Lock
+
 import pymysql
 from DBUtils.PooledDB import PooledDB
 
@@ -8,6 +10,7 @@ class SqlUtil(object):
     __instance = None
     conn = None
     cursor = None
+    lock = Lock()
 
     def __init__(self):
         if self.__instance:
@@ -17,12 +20,15 @@ class SqlUtil(object):
 
     @classmethod
     def get_instance(cls, **kwargs):
-        if not cls.__instance:
-            cls.__instance = SqlUtil()
-            cls.conn = kwargs.get("driver").get_instance(**kwargs).conn
-            cls.cursor = kwargs.get("driver").get_instance(**kwargs).cursor
-            Logger.logger.info("SqlUtil初始化成功")
-        return cls.__instance
+        if SqlUtil.__instance:
+            return SqlUtil.__instance
+        with SqlUtil.lock:
+            if not cls.__instance:
+                cls.__instance = SqlUtil()
+                cls.conn = kwargs.get("driver").get_instance(**kwargs).conn
+                cls.cursor = kwargs.get("driver").get_instance(**kwargs).cursor
+                Logger.logger.info("SqlUtil初始化成功")
+                return cls.__instance
 
     @classmethod
     def get_task(cls):

@@ -82,10 +82,11 @@ class Dispatch(Crawler):
             mq_queue = "download"
         mq_conn = connect(mq_queue, user, pwd, host, port)
         while True:
-            tasks = SqlUtil.get_task()
-            task_ids = ["'{}'".format(task.get("task_id")) for task in tasks]
-            if task_ids:
-                SqlUtil.update_task(task_ids)
+            with SqlUtil.lock:
+                tasks = SqlUtil.get_task()
+                task_ids = ["'{}'".format(task.get("task_id")) for task in tasks]
+                if task_ids:
+                    SqlUtil.update_task(task_ids)
             for task in tasks:
                 task_id = task.get("task_id")
                 task_url = task.get("task_url")
