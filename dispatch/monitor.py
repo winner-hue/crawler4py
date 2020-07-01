@@ -3,7 +3,7 @@ import threading
 import time
 
 from dispatch.dispatch import Dispatch
-from downloader.downloader import Downloader
+from download.downloader import Downloader
 from extractor.extractor import Extractor
 from log import Logger
 from pycrawler import Crawler
@@ -47,7 +47,7 @@ class Monitor(object):
         dispatch_size = args[3]
 
         downloader = [re.search(r"(\d+)", name.name).group(1) for name in threading.enumerate() if
-                      name.name.__contains__("downloader")]
+                      name.name.__contains__("download")]
         extractor = [re.search(r"(\d+)", name.name).group(1) for name in threading.enumerate() if
                      name.name.__contains__("extractor")]
         storage_dup = [re.search(r"(\d+)", name.name).group(1) for name in threading.enumerate() if
@@ -58,8 +58,8 @@ class Monitor(object):
         if len(downloader) < downloader_size:
             need_review = [i for i in range(downloader_size) if i not in downloader]
             for index in need_review:
-                Logger.logger.info(f"重启线程：downloader--{index}")
-                threading.Thread(target=Downloader(**Crawler.crawler_setting).run, name=f"downloader--{index}").start()
+                Logger.logger.info(f"重启线程：download--{index}")
+                threading.Thread(target=Downloader(**Crawler.crawler_setting).run, name=f"download--{index}").start()
         if len(extractor) < extractor_size:
             need_review = [i for i in range(extractor_size) if i not in downloader]
             for index in need_review:
@@ -88,6 +88,7 @@ class Monitor(object):
     def task_job():
         collections = MongoUtil.monitor.list_collections()
         for collection in iter(collections):
+            # MongoUtil.monitor.get_collection(task_id).aggregate([{"$indexStats": {}}])
             collection = MongoUtil.monitor.get_collection(collection.get("name"))
             collection_count = collection.count()
             if collection_count == 0:

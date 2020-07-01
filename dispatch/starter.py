@@ -1,8 +1,9 @@
+import time
 from threading import Thread
 
 from dispatch.dispatch import Dispatch
 from dispatch.monitor import Monitor
-from downloader.downloader import Downloader
+from download.downloader import Downloader
 from extractor.extractor import Extractor
 from log import Logger
 from storage_dup import BaseStorageDup
@@ -47,7 +48,8 @@ class Starter(object):
             task_q.put(self.url)
         self.install(crawler)
         crawler.start()
-        # self.monitor()
+        time.sleep(10)
+        self.monitor()
 
     def install(self, crawler: Dispatch):
         """

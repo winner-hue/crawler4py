@@ -3,7 +3,7 @@ import os
 from util.sqlutil import MySql
 
 setting = {
-    "crawler_mode": 0,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
+    "crawler_mode": 1,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
     "mongo": {
         # 初始化mongo排重库
         "mongo_dup": {
@@ -21,7 +21,6 @@ setting = {
         },
     },
     "mq": {
-        "type": 1,  # 0表示kafka，1表示rabbitmq
         "host": "127.0.0.1",
         "port": 5672,
         "user": "pycrawler",
@@ -30,10 +29,19 @@ setting = {
     "logger_path": "{}{}logging.json".format(os.path.dirname(__file__), os.sep),
     "sql": {
         "driver": MySql,
-        "user": "root",
-        "pwd": "root",
+        "user": "pycrawler",
+        "pwd": "pycrawler",
         "host": "127.0.0.1",
         "port": 3306,
         "db": "pycrawler"
-    }
+    },
+    "mq_queue": {
+        "download": "",
+        "extract": "",
+        "storage_dup": "",
+        "recovery": "",
+        "dispatch": ""
+    },
+    "task_cell": 10
+
 }

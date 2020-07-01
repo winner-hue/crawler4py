@@ -6,23 +6,40 @@ from log import Logger
 
 class SqlUtil(object):
     __instance = None
+    conn = None
+    cursor = None
 
     def __init__(self):
         if self.__instance:
-            Logger.logger.info("已经进行初始化")
+            Logger.logger.info("SqlUtil已经进行初始化")
         else:
-            Logger.logger.info("开始进行初始化")
+            Logger.logger.info("开始进行SqlUtil初始化")
 
     @classmethod
     def get_instance(cls, **kwargs):
         if not cls.__instance:
-            Logger.logger.info("数据库开始进行初始化")
-            cls.__instance = kwargs.get("driver")(**kwargs)
-            Logger.logger.info("数据库初始化成功")
+            cls.__instance = SqlUtil()
+            cls.conn = kwargs.get("driver").get_instance(**kwargs).conn
+            cls.cursor = kwargs.get("driver").get_instance(**kwargs).cursor
+            Logger.logger.info("SqlUtil初始化成功")
         return cls.__instance
 
-    def insert(self):
-        raise NotImplemented
+    @classmethod
+    def get_task(cls):
+        sql = "select * from tasks where task_status=0 order by exec_time asc limit 50"
+        cls.cursor.execute(sql)
+        return cls.cursor.fetchall()
+
+    @classmethod
+    def update_task(cls, task_ids):
+        sql = "update tasks set task_status=1 where task_id in ({})".format(','.join(task_ids))
+        cls.cursor.execute(sql)
+        cls.conn.commit()
+
+    @classmethod
+    def insert(cls, sql):
+        cls.cursor.execute(sql)
+        cls.conn.commit()
 
     def update(self):
         raise NotImplemented
@@ -34,35 +51,30 @@ class SqlUtil(object):
         raise NotImplemented
 
 
-class MySql(SqlUtil):
-    conn = None
-    cursor = None
+class MySql(object):
+    __instance = None
 
-    def __init__(self, **kwargs):
-        super(MySql, self).__init__()
-        user = kwargs.get("user")
-        pwd = kwargs.get("pwd")
-        host = kwargs.get("host")
-        port = kwargs.get("port")
-        db = kwargs.get("db")
-        pool = PooledDB(pymysql, mincached=1, maxcached=1, maxconnections=3, host=host, user=user, password=pwd,
-                        database=db, port=port, cursorclass=pymysql.cursors.DictCursor,
-                        setsession=['SET AUTOCOMMIT = 1'])
-        conn = pool.connection()
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
+    def __init__(self):
+        if not MySql.__instance:
+            Logger.logger.info("开始创建mysql实例")
+        else:
+            Logger.logger.info("已经存在mysql实例")
 
     @classmethod
-    def insert(cls):
-        pass
+    def get_instance(cls, **kwargs):
+        if not cls.__instance:
+            cls.__instance = MySql()
+            user = kwargs.get("user")
+            pwd = kwargs.get("pwd")
+            host = kwargs.get("host")
+            port = kwargs.get("port")
+            db = kwargs.get("db")
+            cls.pool = PooledDB(pymysql, mincached=1, maxcached=1, maxconnections=3, host=host, user=user, password=pwd,
+                                database=db, port=port, cursorclass=pymysql.cursors.DictCursor,
+                                setsession=['SET AUTOCOMMIT = 1'])
 
-    @classmethod
-    def update(cls):
-        pass
+            cls.conn = cls.pool.connection()
 
-    @classmethod
-    def delete(cls):
-        pass
-
-    @classmethod
-    def select(cls):
-        pass
+            cls.cursor = cls.conn.cursor(pymysql.cursors.DictCursor)
+            Logger.logger.info("mysql实例创建成功")
+        return cls.__instance

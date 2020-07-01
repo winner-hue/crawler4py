@@ -1,5 +1,7 @@
 import pika
 
+from log import Logger
+
 
 def connect(queue_name, user, pwd, host, port, exchange=None, exchange_type=None):
     """
@@ -42,42 +44,34 @@ def send_data(channel, exchange, message, routing_key):
         channel.basic_publish(exchange=exchange, routing_key=routing_key, body=message,
                               properties=pika.BasicProperties(delivery_mode=2))
     except Exception as e:
-        print("数据发送失败： {}".format(e))
+        Logger.logger("数据发送失败： {}".format(e))
         return False
     return True
 
 
-def get_data(channel, routing_key, no_ack=None):
+def get_data(call_back):
     """
-    获取rabitmq中的数据
-    :param channel:
-    :param routing_key:
-    :param no_ack:
+    回调函数
+    :param call_back:
     :return:
     """
 
-    def _get_data(call_back):
+    def do_data(*args, **kwargs):
         """
-        获取回调函数
-        :param call_back:
+        执行回调函数，获取数据
+        :param args:
+        :param kwargs:
         :return:
         """
+        no_ack = kwargs.get("no_ack")
+        channel = kwargs.get("channel")
+        routing_key = kwargs.get("routing_key")
+        # no_ack 是rabbitmq中用来判断是否保留任务，True为不保留， False为保留
+        if no_ack is not None:
+            channel.basic_qos(prefetch_count=1)
+            channel.basic_consume(routing_key, call_back, no_ack=False)
+        else:
+            channel.basic_consume(routing_key, call_back)
+        channel.start_consuming()
 
-        def do_data(*args, **kwargs):
-            """
-            执行回调函数，获取数据
-            :param args:
-            :param kwargs:
-            :return:
-            """
-            # no_ack 是rabbitmq中用来判断是否保留任务，True为不保留， False为保留
-            if no_ack is not None:
-                channel.basic_qos(prefetch_count=1)
-                channel.basic_consume(routing_key, call_back, no_ack=False)
-            else:
-                channel.basic_consume(routing_key, call_back)
-            channel.start_consuming()
-
-        return do_data
-
-    return _get_data
+    return do_data
