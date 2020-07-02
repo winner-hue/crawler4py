@@ -14,7 +14,7 @@ class Extractor(Crawler):
             task_url = html_q.get()
             print(task_url)
             single_over_signal = 1
-            sys.exit(0)
+            exit()
 
     def run(self):
         try:
@@ -27,7 +27,8 @@ class Extractor(Crawler):
             Logger.logger.info("extract 启动失败：{}".format(e))
 
     def process(self):
-        if not html_q.empty():
+        crawler_mode = self.crawler_setting.get("crawler_mode")
+        if not crawler_mode:
             self.simple()
         else:
             try:

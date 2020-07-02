@@ -71,7 +71,8 @@ class Starter(object):
         监控器
         :return:
         """
-        Thread(target=Monitor.get_instance().task_monitor, name="task-monitor").start()
-        Thread(target=Monitor.get_instance().thread_monitor,
-               args=(self.downloader_thread_size, self.extractor_thread_size, self.storage_dup_thread_size,
-                     self.dispatch_thread_size), name="thread_monitor").start()
+        if self.crawler_mode:
+            Thread(target=Monitor.get_instance().task_monitor, name="task-monitor").start()
+            Thread(target=Monitor.get_instance().thread_monitor,
+                   args=(self.downloader_thread_size, self.extractor_thread_size, self.storage_dup_thread_size,
+                         self.dispatch_thread_size), name="thread_monitor").start()

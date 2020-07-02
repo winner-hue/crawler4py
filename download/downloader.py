@@ -13,9 +13,9 @@ class Downloader(Crawler):
     def simple(self):
         while True:
             task_url = task_q.get()
-            print(task_url)
+            Logger.logger.info(task_url)
             single_over_signal = 1
-            sys.exit(0)
+            sys.exit()
 
     def run(self):
         try:
@@ -28,7 +28,8 @@ class Downloader(Crawler):
             Logger.logger.info("downloader 启动失败：{}".format(e))
 
     def process(self):
-        if not task_q.empty():
+        crawler_mode = self.crawler_setting.get("crawler_mode")
+        if not crawler_mode:
             self.simple()
         else:
             try:

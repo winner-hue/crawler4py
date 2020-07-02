@@ -28,7 +28,8 @@ class BaseStorageDup(Crawler):
             Logger.logger.info("storage_dup 启动失败：{}".format(e))
 
     def process(self):
-        if not data_q.empty():
+        crawler_mode = self.crawler_setting.get("crawler_mode")
+        if not crawler_mode:
             self.simple()
         else:
             try:
