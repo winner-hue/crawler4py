@@ -10,12 +10,11 @@ from util.running_params import data_q, task_q, html_q
 class BaseStorageDup(Crawler):
 
     def simple(self):
-        while True:
-            if task_q.empty() and html_q.empty() and data_q.empty():
-                Logger.logger.info("监测到退出信号， 开始退出")
-                break
-            task_url = data_q.get()
-            print(task_url)
+        while not task_q.empty() or not html_q.empty() or not data_q.empty():
+            task_url = task_q.get()
+            Logger.logger.info(task_url)
+        else:
+            Logger.logger.info("监测到退出信号，开始退出。。。")
 
     def run(self):
         try:

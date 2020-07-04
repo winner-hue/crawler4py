@@ -1,6 +1,6 @@
-import time
 from threading import Thread
 
+from download import request
 from download.callback import call_back
 from log import Logger
 from pycrawler import Crawler
@@ -11,12 +11,14 @@ from util.running_params import task_q, html_q, data_q
 class Downloader(Crawler):
 
     def simple(self):
-        while True:
-            if task_q.empty() and html_q.empty() and data_q.empty():
-                Logger.logger.info("监测到退出信号， 开始退出")
-                break
+        while not task_q.empty() or not html_q.empty() or not data_q.empty():
             task_url = task_q.get()
             Logger.logger.info(task_url)
+            r = request.request().get(task_url)
+            Logger.logger.info(r.request.headers)
+            Logger.logger.info("status code: {}".format(r.status_code))
+        else:
+            Logger.logger.info("监测到退出信号，开始退出。。。")
 
     def run(self):
         try:
