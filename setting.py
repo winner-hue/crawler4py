@@ -3,7 +3,7 @@ import os
 from util.sqlutil import MySql
 
 setting = {
-    "crawler_mode": 0,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
+    "crawler_mode": 1,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
     "mongo": {
         # 初始化mongo排重库
         "mongo_dup": {
@@ -42,6 +42,5 @@ setting = {
         "recovery": "",
         "dispatch": ""
     },
-    "task_cell": 10
-
+    "task_cell": 10,
 }

@@ -1,6 +1,9 @@
 import re
+import sys
 import threading
 import time
+
+import psutil
 
 from dispatch.dispatch import Dispatch
 from download.downloader import Downloader
@@ -112,7 +115,17 @@ class Monitor(object):
     @staticmethod
     def sys_monitor():
         """
-        系统监控， 监听系统cpu，内存等状态，当超过阈值则通知运维人员
+        系统监控， 监听系统cpu，内存等状态，
+        当超过阈值则通知运维人员, 此处改为停掉系统
         :return:
         """
-        pass
+        while True:
+            cpu_per = psutil.cpu_percent()
+            memory = psutil.virtual_memory().percent
+
+            if cpu_per > 99 or memory > 99:
+                Logger.logger.info("系统退出：cpu状态：{}, 内存状态：{}".format(cpu_per, memory))
+                sys.exit(0)
+            else:
+                Logger.logger.info("cpu状态：{}, 内存状态：{}".format(cpu_per, memory))
+            time.sleep(20)
