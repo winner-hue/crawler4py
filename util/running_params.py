@@ -7,6 +7,3 @@ html_q = Queue()
 data_q = Queue()
 
 single_dup = set()
-
-single_over_signal = None
-

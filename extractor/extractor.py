@@ -1,20 +1,20 @@
-import sys
 from threading import Thread
 
 from extractor.callback import call_back
 from log import Logger
 from pycrawler import Crawler
 from util.rabbitmqutil import connect
-from util.running_params import html_q
+from util.running_params import html_q, task_q, data_q
 
 
 class Extractor(Crawler):
     def simple(self):
         while True:
+            if task_q.empty() and html_q.empty() and data_q.empty():
+                Logger.logger.info("监测到退出信号， 开始退出")
+                break
             task_url = html_q.get()
             print(task_url)
-            single_over_signal = 1
-            exit()
 
     def run(self):
         try:

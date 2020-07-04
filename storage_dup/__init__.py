@@ -1,21 +1,21 @@
-import sys
 from threading import Thread
 
 from log import Logger
 from pycrawler import Crawler
 from storage_dup.calback import call_back
 from util.rabbitmqutil import connect
-from util.running_params import data_q
+from util.running_params import data_q, task_q, html_q
 
 
 class BaseStorageDup(Crawler):
 
     def simple(self):
         while True:
+            if task_q.empty() and html_q.empty() and data_q.empty():
+                Logger.logger.info("监测到退出信号， 开始退出")
+                break
             task_url = data_q.get()
             print(task_url)
-            single_over_signal = 1
-            sys.exit(0)
 
     def run(self):
         try:
@@ -49,4 +49,3 @@ class BaseStorageDup(Crawler):
 
             mq_conn = connect(mq_queue, user, pwd, host, port)
             call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})
-

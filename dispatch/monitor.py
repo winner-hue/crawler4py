@@ -10,6 +10,8 @@ from pycrawler import Crawler
 from storage_dup import BaseStorageDup
 from util.mongoutil import MongoUtil
 
+'''监控器'''
+
 
 class Monitor(object):
     __instance = None
@@ -44,6 +46,11 @@ class Monitor(object):
 
     @staticmethod
     def thread_job(*args):
+        """
+        线程监控
+        :param args: 0:下载线程数量,1:解析线程数量,2:入库排重线程数量,3:调度线程数量 
+        :return: 
+        """
         downloader_size = args[0]
         extractor_size = args[1]
         storage_dup_size = args[2]
@@ -89,6 +96,10 @@ class Monitor(object):
 
     @staticmethod
     def task_job():
+        """
+        任务监控
+        :return: 
+        """
         collections = MongoUtil.monitor.list_collections()
         for collection in iter(collections):
             # MongoUtil.monitor.get_collection(task_id).aggregate([{"$indexStats": {}}])
@@ -97,3 +108,11 @@ class Monitor(object):
             if collection_count == 0:
                 Logger.logger.info("删除--{}--集合".format(collection.name))
                 collection.drop()
+
+    @staticmethod
+    def sys_monitor():
+        """
+        系统监控， 监听系统cpu，内存等状态，当超过阈值则通知运维人员
+        :return:
+        """
+        pass
