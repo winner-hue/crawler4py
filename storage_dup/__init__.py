@@ -3,7 +3,7 @@ from threading import Thread
 
 from log import Logger
 from pycrawler import Crawler
-from storage_dup.sd_calback import call_back
+from storage_dup.calback import call_back
 from util.rabbitmqutil import connect
 from util.running_params import data_q
 

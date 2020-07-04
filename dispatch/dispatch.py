@@ -2,10 +2,11 @@ import hashlib
 import time
 from threading import Thread
 
+from dispatch.callback import call_back
 from log import Logger
 from pycrawler import Crawler
 from util.mongoutil import MongoUtil
-from util.rabbitmqutil import connect, send_data, get_data
+from util.rabbitmqutil import connect, send_data
 from util.sqlutil import SqlUtil
 
 
@@ -109,7 +110,7 @@ class Dispatch(Crawler):
             mq_queue = "dispatch"
         mq_conn = connect(mq_queue, user, pwd, host, port)
 
-        self.call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})
+        call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})
 
     def back_task(self, user, pwd, host, port):
         try:
@@ -120,10 +121,4 @@ class Dispatch(Crawler):
             mq_queue = "recovery"
         mq_conn = connect(mq_queue, user, pwd, host, port)
 
-        self.call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})
-
-    @get_data
-    def call_back(self, ch, method, properties, body, **kwargs):
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        message = body.decode()
-        print(message)
+        call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})

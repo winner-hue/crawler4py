@@ -1,7 +1,7 @@
 import sys
 from threading import Thread
 
-from extractor.extract_callback import call_back
+from extractor.callback import call_back
 from log import Logger
 from pycrawler import Crawler
 from util.rabbitmqutil import connect
