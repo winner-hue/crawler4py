@@ -44,7 +44,7 @@ def send_data(channel, exchange, message, routing_key):
         channel.basic_publish(exchange=exchange, routing_key=routing_key, body=message,
                               properties=pika.BasicProperties(delivery_mode=2))
     except Exception as e:
-        Logger.logger("数据发送失败： {}".format(e))
+        Logger.logger.info("数据发送失败： {}".format(e))
         return False
     return True
 
