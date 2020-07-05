@@ -1,5 +1,6 @@
 import hashlib
 import time
+import datetime
 from threading import Thread
 
 from dispatch.callback import call_back
@@ -7,6 +8,7 @@ from log import Logger
 from pycrawler import Crawler
 from util.mongoutil import MongoUtil
 from util.rabbitmqutil import connect, send_data
+from util.redisutil import RedisUtil
 from util.sqlutil import SqlUtil
 
 
@@ -45,7 +47,7 @@ class Dispatch(Crawler):
     def process(self):
         if self.crawler_setting.get("crawler_mode"):
             try:
-                MongoUtil.get_instance(**self.crawler_setting)
+                RedisUtil.get_instance(**self.crawler_setting)
                 SqlUtil.get_instance(**self.crawler_setting.get("sql"))
             except Exception:
                 raise Exception("数据库初始化失败， 请检查配置文件")
@@ -83,22 +85,21 @@ class Dispatch(Crawler):
             mq_queue = "download"
         mq_conn = connect(mq_queue, user, pwd, host, port)
         while True:
-            with SqlUtil.lock:
+            tasks = None
+            if RedisUtil.get_lock():
                 tasks = SqlUtil.get_task()
                 task_ids = ["'{}'".format(task.get("task_id")) for task in tasks]
                 if task_ids:
-                    SqlUtil.update_task(task_ids)
-            for task in tasks:
-                task_id = task.get("task_id")
-                task_url = task.get("task_url")
-                if MongoUtil.monitor.get_collection(task_id).count() == 0:
-                    MongoUtil.monitor.get_collection(task_id).insert_one(
-                        {"_id": hashlib.md5(task_url.encode("utf-8")).hexdigest()})
-                else:
-                    continue
-                message = repr(task)
-                send_data(mq_conn, '', message, mq_queue)
-            Logger.logger.info("任务发送完成, 开始进行休眠, 休眠..{}s..".format(task_cell))
+                    SqlUtil.update_task(1, task_ids)
+                for task in tasks:
+                    task_id = task.get("task_id")
+                    RedisUtil.monitor_task(task_id)
+                    message = repr(task)
+                    send_data(mq_conn, '', message, mq_queue)
+                    Logger.logger.info("任务发送完成, 开始进行休眠, 休眠..{}s..".format(task_cell))
+                RedisUtil.release_lock()
+            if not tasks:
+                Logger.logger.info("未抢到锁或没有可提取任务，休眠..{}s..".format(task_cell))
             time.sleep(task_cell)
 
     def generate_task(self, user, pwd, host, port):

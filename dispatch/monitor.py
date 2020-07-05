@@ -11,7 +11,6 @@ from extractor.extractor import Extractor
 from log import Logger
 from pycrawler import Crawler
 from storage_dup import BaseStorageDup
-from util.mongoutil import MongoUtil
 
 '''监控器'''
 
@@ -89,28 +88,6 @@ class Monitor(object):
             for index in need_review:
                 Logger.logger.info(f"重启线程：dispatch--{index}")
                 threading.Thread(target=Dispatch(**Crawler.crawler_setting).run, name=f"dispatch--{index}").start()
-
-    @staticmethod
-    def task_monitor():
-        Logger.logger.info("任务监控启动成功")
-        while True:
-            Monitor.task_job()
-            time.sleep(1)
-
-    @staticmethod
-    def task_job():
-        """
-        任务监控
-        :return: 
-        """
-        collections = MongoUtil.monitor.list_collections()
-        for collection in iter(collections):
-            # MongoUtil.monitor.get_collection(task_id).aggregate([{"$indexStats": {}}])
-            collection = MongoUtil.monitor.get_collection(collection.get("name"))
-            collection_count = collection.count()
-            if collection_count == 0:
-                Logger.logger.info("删除--{}--集合".format(collection.name))
-                collection.drop()
 
     @staticmethod
     def sys_monitor():

@@ -37,8 +37,8 @@ class SqlUtil(object):
         return cls.cursor.fetchall()
 
     @classmethod
-    def update_task(cls, task_ids):
-        sql = "update tasks set task_status=1 where task_id in ({})".format(','.join(task_ids))
+    def update_task(cls, task_status, task_ids=None):
+        sql = "update tasks set task_status={} where task_id in ({})".format(task_status, ','.join(task_ids))
         cls.cursor.execute(sql)
         cls.conn.commit()
 

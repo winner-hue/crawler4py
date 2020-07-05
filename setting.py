@@ -4,22 +4,40 @@ from util.sqlutil import MySql
 
 setting = {
     "crawler_mode": 1,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
-    "mongo": {
-        # 初始化mongo排重库
-        "mongo_dup": {
-            "user": 1,
-            "pwd": 1,
-            "host": "127.0.0.1",
-            "port": 27017
-        },
-        # 初始化mongo任务监控库
-        "mongo_task_monitor": {
-            "user": None,
+    "redis": {
+        "dup": {
             "pwd": None,
             "host": "127.0.0.1",
-            "port": 27017
+            "port": 6379,
+            "db": 0,
+            "bloomfilter": True,
+            "blocknum": 1,
+            "key": "bloomfilter"
+        },
+        "task_monitor": {
+            "pwd": None,
+            "host": "127.0.0.1",
+            "port": 6379,
+            "db": 0,
+            "expire": 10 * 60
         },
     },
+    # "mongo": {
+    #     # 初始化mongo排重库
+    #     "mongo_dup": {
+    #         "user": None,
+    #         "pwd": None,
+    #         "host": "127.0.0.1",
+    #         "port": 27017
+    #     },
+    #     # 初始化mongo任务监控库
+    #     "mongo_task_monitor": {
+    #         "user": None,
+    #         "pwd": None,
+    #         "host": "127.0.0.1",
+    #         "port": 27017
+    #     },
+    # },
     "mq": {
         "host": "127.0.0.1",
         "port": 5672,
