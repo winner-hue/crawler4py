@@ -63,10 +63,10 @@ setting = {
     },
     "task_cell": 10,
     "plugins": {
-        "download": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "download"),
-        "extract": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "extract"),
-        "storage": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "storage"),
-        "dup": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "dup"),
-        "dispatch": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "dispatch")
+        "download": os.path.join(BASE_DIR, "plugins", "download"),
+        "extract": os.path.join(BASE_DIR, "plugins", "download"),
+        "storage": os.path.join(BASE_DIR, "plugins", "download"),
+        "dup": os.path.join(BASE_DIR, "plugins", "download"),
+        "dispatch": os.path.join(BASE_DIR, "plugins", "download")
     }
 }
