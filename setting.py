@@ -2,6 +2,7 @@ import os
 
 from util.sqlutil import MySql
 
+BASE_DIR = os.path.dirname(__file__)
 setting = {
     "crawler_mode": 1,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
     "redis": {
@@ -44,7 +45,7 @@ setting = {
         "user": "pycrawler",
         "pwd": "pycrawler"
     },
-    "logger_path": "{}{}logging.json".format(os.path.dirname(__file__), os.sep),
+    "logger_path": "{}{}logging.json".format(BASE_DIR, os.sep),
     "sql": {
         "driver": MySql,
         "user": "pycrawler",
@@ -61,4 +62,11 @@ setting = {
         "dispatch": ""
     },
     "task_cell": 10,
+    "plugins": {
+        "download": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "download"),
+        "extract": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "extract"),
+        "storage": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "storage"),
+        "dup": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "dup"),
+        "dispatch": "{}{}plugins{}{}".format(BASE_DIR, os.sep, os.sep, "dispatch")
+    }
 }
