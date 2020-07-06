@@ -1,12 +1,9 @@
-import hashlib
 import time
-import datetime
 from threading import Thread
 
 from dispatch.callback import call_back
 from log import Logger
 from pycrawler import Crawler
-from util.mongoutil import MongoUtil
 from util.rabbitmqutil import connect, send_data
 from util.redisutil import RedisUtil
 from util.sqlutil import SqlUtil
