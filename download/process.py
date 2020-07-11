@@ -3,6 +3,7 @@ import os
 import tldextract
 
 from download.request import request
+from log import Logger
 
 
 def process(message, path):
@@ -42,12 +43,17 @@ def get_path(task_type, path):
 
 
 def default(task_url, message):
-    r = request.get(task_url)
-    if r.status_code > 400:
-        message["recovery_flag"] = message["recovery_flag"] + 1 if message["recovery_flag"] else 1
-    else:
-        if message.get("task_encode"):
-            message["view_source"] = r.content.decode(message.get("task_encode"))
-        else:
-            message["view_source"] = r.text
-    return message
+    for i in range(3):
+        try:
+            r = request.get(task_url)
+            if r.status_code > 400:
+                message["recovery_flag"] = message["recovery_flag"] + 1 if message["recovery_flag"] else 1
+            else:
+                if message.get("task_encode"):
+                    message["view_source"] = r.content.decode(message.get("task_encode"))
+                else:
+                    message["view_source"] = r.text
+            return message
+        except Exception as e:
+            Logger.logger.error("下载失败， 当前下载次数{}: {}".format(i + 1, e))
+    return message["recovery_flag"] + 1 if message["recovery_flag"] else 1

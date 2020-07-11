@@ -70,8 +70,11 @@ class Downloader(Crawler):
             path = None
         result = process(message, path)
         if result.get("recovery"):
-            send_data(Downloader.mq_conn, '', repr(result), 'recovery')
-            Logger.logger.info("回收任务成功")
+            if result.get("recovery") < 3:
+                send_data(Downloader.mq_conn, '', repr(result), 'recovery')
+                Logger.logger.info("回收--{}--成功".format(result.get("task_url")))
+            else:
+                Logger.logger.info("{}--超出回收次数上限， 不做回收".format(result.get("task_url")))
         else:
             send_data(Downloader.mq_conn, '', repr(result), 'extract')
             Logger.logger.info("发送任务至提取中心")
