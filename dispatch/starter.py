@@ -1,3 +1,4 @@
+import sys
 import time
 from threading import Thread
 
@@ -44,6 +45,10 @@ class Starter(object):
         """
         Logger.get_instance(**self.setting)  # 日志类 创建
         crawler = Dispatch(**self.setting)
+        try:
+            sys.path.append(self.setting.get("base_dir"))
+        except AttributeError:
+            pass
         if not self.crawler_mode:
             task_q.put(self.url)
         self.install(crawler)

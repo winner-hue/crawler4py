@@ -1,20 +1,22 @@
 from threading import Thread
 
-from download import request
-from download.callback import call_back
+import datetime
+from download.request import request
+from download.process import process
 from log import Logger
 from pycrawler import Crawler
-from util.rabbitmqutil import connect
+from util.rabbitmqutil import connect, get_data, send_data
 from util.running_params import task_q, html_q, data_q
 
 
 class Downloader(Crawler):
+    mq_conn = None
 
     def simple(self):
         while not task_q.empty() or not html_q.empty() or not data_q.empty():
             task_url = task_q.get()
             Logger.logger.info(task_url)
-            r = request.request().get(task_url)
+            r = request.get(task_url)
             Logger.logger.info(r.request.headers)
             Logger.logger.info("status code: {}".format(r.status_code))
         else:
@@ -49,6 +51,27 @@ class Downloader(Crawler):
                 host = "127.0.0.1"
                 port = 5672
                 mq_queue = "download"
+            Downloader.mq_conn = connect(mq_queue, user, pwd, host, port)
+            try:
+                plugin_path = self.crawler_setting.get("plugins").get("download")
+            except ArithmeticError:
+                plugin_path = None
+            self.call_back(
+                **{"no_ack": None, "channel": Downloader.mq_conn, "routing_key": mq_queue, "plugin_path": plugin_path})
 
-            mq_conn = connect(mq_queue, user, pwd, host, port)
-            call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})
+    @staticmethod
+    @get_data
+    def call_back(ch, method, properties, body):
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        message: dict = eval(body.decode())
+        try:
+            path = Downloader.crawler_setting.get("plugins").get("download")
+        except AttributeError:
+            path = None
+        result = process(message, path)
+        if result.get("recovery"):
+            send_data(Downloader.mq_conn, '', repr(result), 'recovery')
+            Logger.logger.info("回收任务成功")
+        else:
+            send_data(Downloader.mq_conn, '', repr(result), 'extract')
+            Logger.logger.info("发送任务至提取中心")

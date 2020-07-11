@@ -4,6 +4,7 @@ from util.sqlutil import MySql
 
 BASE_DIR = os.path.dirname(__file__)
 setting = {
+    "base_dir": BASE_DIR,
     "crawler_mode": 1,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
     "redis": {
         "dup": {
@@ -63,10 +64,10 @@ setting = {
     },
     "task_cell": 10,
     "plugins": {
-        "download": os.path.join(BASE_DIR, "plugins", "download"),
-        "extract": os.path.join(BASE_DIR, "plugins", "download"),
-        "storage": os.path.join(BASE_DIR, "plugins", "download"),
-        "dup": os.path.join(BASE_DIR, "plugins", "download"),
-        "dispatch": os.path.join(BASE_DIR, "plugins", "download")
+        "download": "plugins.download",
+        "extract": "plugins.extract",
+        "storage": "plugins.storage",
+        "dup": "plugins.dup",
+        "dispatch": "plugins.dispatch"
     }
 }

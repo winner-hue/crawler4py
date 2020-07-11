@@ -154,13 +154,11 @@ class RedisUtil(object):
 
     @classmethod
     def get_lock(cls):
-        pipeline = cls.dup.pipeline()
         result = True
-        if pipeline.get("lock"):
+        if cls.dup.get("lock"):
             result = False
         else:
-            pipeline.set("lock", "lock")
-        pipeline.execute()
+            cls.dup.set("lock", "lock")
         return result
 
     @classmethod
@@ -178,8 +176,8 @@ class RedisUtil(object):
 
     @classmethod
     def monitor_insert(cls, key, value):
-        pipeline = cls.monitor.pipeline()
-        ttl = pipeline.ttl(key)
+
+        ttl = cls.monitor.ttl(key)
         if ttl > 0:
             return cls.monitor.sadd(key, value)
         else:

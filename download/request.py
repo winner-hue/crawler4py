@@ -34,3 +34,6 @@ def default_headers():
         'Accept': '*/*',
         'Connection': 'keep-alive',
     })
+
+
+request = request()
