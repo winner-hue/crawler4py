@@ -1,3 +1,6 @@
+import hashlib
+import time
+import uuid
 from threading import Thread
 
 import datetime
@@ -6,7 +9,9 @@ from download.process import process
 from log import Logger
 from pycrawler import Crawler
 from util.rabbitmqutil import connect, get_data, send_data
+from util.redisutil import RedisUtil
 from util.running_params import task_q, html_q, data_q
+from util.sqlutil import SqlUtil
 
 
 class Downloader(Crawler):
@@ -25,7 +30,7 @@ class Downloader(Crawler):
     def run(self):
         try:
             Logger.logger.info("downloader 开始启动。。。")
-            t1 = Thread(target=self.process)
+            t1 = Thread(target=self.process, name="download-process-{}".format(uuid.uuid4().hex))
             t1.start()
             Logger.logger.info("downloader 启动成功。。。")
             t1.join()
@@ -74,6 +79,18 @@ class Downloader(Crawler):
                 send_data(Downloader.mq_conn, '', repr(result), 'recovery')
                 Logger.logger.info("回收--{}--成功".format(result.get("task_url")))
             else:
+                RedisUtil.del_exist(message.get("task_id"),
+                                    hashlib.md5(message.get("task_url").encode("utf-8")).hexdigest())
+                if message.get("main_task_flag"):
+                    while True:
+                        if RedisUtil.get_lock():
+                            pre_exec_time = message.get("exec_time")
+                            exec_time = message.get("exec_time") - datetime.timedelta(seconds=message.get("task_cell"))
+                            SqlUtil.update_task(0, "'{}'".format(message.get("task_id")), str(exec_time),
+                                                str(pre_exec_time))
+                            RedisUtil.release_lock()
+                            break
+                        time.sleep(0.3)
                 Logger.logger.info("{}--超出回收次数上限， 不做回收".format(result.get("task_url")))
         else:
             send_data(Downloader.mq_conn, '', repr(result), 'extract')

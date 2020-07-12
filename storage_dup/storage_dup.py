@@ -1,10 +1,12 @@
+import hashlib
 import os
-import traceback
 
 import tldextract
+from pymongo.errors import DuplicateKeyError
 
-from download.request import request
 from log import Logger
+from util.mongoutil import MongoUtil
+from util.redisutil import RedisUtil
 
 
 def process(message, path):
@@ -44,21 +46,28 @@ def get_path(task_type, path):
 
 
 def default(task_url, message):
-    header = message.get("header")
-    for i in range(3):
-        try:
-            if header:
-                r = request.get(task_url, header)
-            else:
-                r = request.get(task_url)
-            if r.status_code > 400:
-                message["recovery_flag"] = message["recovery_flag"] + 1 if message["recovery_flag"] else 1
-            else:
-                if message.get("task_encode"):
-                    message["view_source"] = r.content.decode(message.get("task_encode"))
-                else:
-                    message["view_source"] = r.text
+    key = hashlib.md5(task_url.encode("utf-8")).hexdigest()
+    if message.get("next_pages"):
+        next_pages = [result for result in message.get("next_pages") if
+                      result.get("is_detail") and not RedisUtil.is_contains(key)]
+        if len(next_pages) == 0:
+            message["next_pages"] = []
             return message
-        except Exception as e:
-            Logger.logger.error("下载失败， 当前下载次数{}: {}".format(i + 1, e.with_traceback(None)))
-    return message["recovery_flag"] + 1 if message["recovery_flag"] else 1
+        new_next_pages = []
+        for result in next_pages:
+            url_key = hashlib.md5(result.get("url").encode("utf-8")).hexdigest()
+            if RedisUtil.monitor_insert(message.get("task_id"), url_key):
+                new_next_pages.append(result)
+        del next_pages
+        new_next_pages.extend([result for result in message.get("next_pages") if not result.get("is_detail")])
+        message["next_pages"] = new_next_pages
+        return message
+    if not RedisUtil.is_contains(key):
+        message["_id"] = key
+        try:
+            MongoUtil.insert_one(message)
+        except DuplicateKeyError as e:
+            Logger.logger.error("插入数据错误：{}".format(e))
+        RedisUtil.insert(key)
+        Logger.logger.info("---{}----入库成功".format(message.get("task_url")))
+        RedisUtil.del_exist(message.get("task_id"), key)

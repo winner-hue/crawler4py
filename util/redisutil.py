@@ -143,7 +143,6 @@ class RedisUtil(object):
 
     @classmethod
     def insert(cls, key):
-        key = hashlib.md5(key.encode("utf-8")).hexdigest()
         if cls.hash_func:
             name = cls.key + str(int(key[0:2], 16) % cls.block_num)
             for f in cls.hash_func:
@@ -190,9 +189,17 @@ class RedisUtil(object):
         return cls.monitor.sismember(key, value)
 
     @classmethod
+    def del_exist(cls, key, value):
+        return cls.monitor.srem(key, value)
+
+    @classmethod
     def monitor_is_exist(cls, key):
         ttl = cls.monitor.ttl(key)
         if ttl > 0:
             return True
         else:
             return False
+
+    @classmethod
+    def monitor_ttl(cls, key):
+        return cls.monitor.ttl(key)

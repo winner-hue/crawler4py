@@ -37,10 +37,16 @@ class SqlUtil(object):
         return cls.cursor.fetchall()
 
     @classmethod
-    def update_task(cls, task_status, task_ids=None):
-        sql = "update tasks set task_status={} where task_id in ({})".format(task_status, ','.join(task_ids))
-        cls.cursor.execute(sql)
-        cls.conn.commit()
+    def update_task(cls, task_status, task_ids=None, *args):
+        if not args:
+            sql = "update tasks set task_status={} where task_id in ({})".format(task_status, ','.join(task_ids))
+            cls.cursor.execute(sql)
+            cls.conn.commit()
+        else:
+            sql = "update task set task_status={}, exec_time={}, pre_exec_time={} where task_id = {}".format(
+                task_status, args[0], args[1], task_ids)
+            cls.cursor.execute(sql)
+            cls.conn.commit()
 
     @classmethod
     def insert(cls, sql):

@@ -1,15 +1,19 @@
+import copy
 import time
+import uuid
 from threading import Thread
 
-from dispatch.callback import call_back
 from log import Logger
 from pycrawler import Crawler
-from util.rabbitmqutil import connect, send_data
+from util.mongoutil import MongoUtil
+from util.rabbitmqutil import connect, send_data, get_data
 from util.redisutil import RedisUtil
 from util.sqlutil import SqlUtil
+import datetime
 
 
 class Dispatch(Crawler):
+    mq_conn = None
 
     def __init__(self, **setting):
         super(Dispatch, self).__init__(**setting)
@@ -46,6 +50,7 @@ class Dispatch(Crawler):
             try:
                 RedisUtil.get_instance(**self.crawler_setting)
                 SqlUtil.get_instance(**self.crawler_setting.get("sql"))
+                MongoUtil.get_instance(**self.crawler_setting)
             except Exception:
                 raise Exception("数据库初始化失败， 请检查配置文件")
             try:
@@ -58,9 +63,12 @@ class Dispatch(Crawler):
                 pwd = "pycrawler"
                 host = "127.0.0.1"
                 port = 5672
-            sql_task = Thread(target=self.get_task, args=(user, pwd, host, port))
-            generate_task = Thread(target=self.generate_task, args=(user, pwd, host, port))
-            back_task = Thread(target=self.back_task, args=(user, pwd, host, port))
+            sql_task = Thread(target=self.get_task, name="sql-task-{}".format(uuid.uuid4().hex),
+                              args=(user, pwd, host, port))
+            generate_task = Thread(target=self.generate_task, name="generate-task-{}".format(uuid.uuid4().hex),
+                                   args=(user, pwd, host, port))
+            back_task = Thread(target=self.back_task, name="back-task-{}".format(uuid.uuid4().hex),
+                               args=(user, pwd, host, port))
             sql_task.start()
             generate_task.start()
             back_task.start()
@@ -91,6 +99,7 @@ class Dispatch(Crawler):
                 for task in tasks:
                     task_id = task.get("task_id")
                     RedisUtil.monitor_task(task_id)
+                    task["main_task_flag"] = 1
                     message = repr(task)
                     send_data(mq_conn, '', message, mq_queue)
                     Logger.logger.info("任务发送完成, 开始进行休眠, 休眠..{}s..".format(task_cell))
@@ -106,9 +115,9 @@ class Dispatch(Crawler):
                 mq_queue = "dispatch"
         except AttributeError:
             mq_queue = "dispatch"
-        mq_conn = connect(mq_queue, user, pwd, host, port)
+        Dispatch.mq_conn = connect(mq_queue, user, pwd, host, port)
 
-        call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})
+        self.call_back(**{"no_ack": None, "channel": Dispatch.mq_conn, "routing_key": mq_queue})
 
     def back_task(self, user, pwd, host, port):
         try:
@@ -117,6 +126,26 @@ class Dispatch(Crawler):
                 mq_queue = "recovery"
         except AttributeError:
             mq_queue = "recovery"
-        mq_conn = connect(mq_queue, user, pwd, host, port)
+        Dispatch.mq_conn = connect(mq_queue, user, pwd, host, port)
 
-        call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})
+        self.call_back(**{"no_ack": None, "channel": Dispatch.mq_conn, "routing_key": mq_queue})
+
+    @staticmethod
+    @get_data
+    def call_back(ch, method, properties, body):
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        message: dict = eval(body.decode())
+        if message.get("next_pages"):
+            next_pages = copy.deepcopy(message.get("next_pages"))
+            del message["next_pages"]
+            for result in next_pages:
+                url = result.get("url")
+                header = result.get("header")
+                message["task_url"] = url
+                message["main_task_flag"] = 0
+                if header:
+                    message["header"] = header
+                Logger.logger.info("新任务：{}".format(message))
+                send_data(Dispatch.mq_conn, '', repr(message), 'download')
+        else:
+            send_data(Dispatch.mq_conn, '', repr(message), 'download')

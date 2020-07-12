@@ -1,3 +1,4 @@
+import uuid
 from threading import Thread
 
 from extractor.analysis import process
@@ -22,7 +23,7 @@ class Extractor(Crawler):
     def run(self):
         try:
             Logger.logger.info("extract 开始启动。。。")
-            t1 = Thread(target=self.process)
+            t1 = Thread(target=self.process, name="extract-process-{}".format(uuid.uuid4().hex))
             t1.start()
             Logger.logger.info("extract 启动成功。。。")
             t1.join()

@@ -1,4 +1,5 @@
-from urllib.parse import urlparse
+import re
+from urllib.parse import urlparse, urljoin
 
 from bs4 import BeautifulSoup
 from gne import GeneralNewsExtractor
@@ -23,8 +24,42 @@ class BaseExtract(object):
         parse = urlparse(task_url)
         scheme = parse.scheme
         netloc = parse.netloc
-        view_source = self.message.get("view_source")
-        extractor = GeneralNewsExtractor()
-        extractor = extractor.extract(view_source, host="{}://{}".format(scheme, netloc))
-        self.message["extract"] = extractor
+        host = "{}://{}/".format(scheme, netloc)
+        self.message["next_pages"] = self.next_pages(host, netloc)
+        for detail in self.re_detail:
+            if re.search(detail, task_url):
+                view_source = self.message.get("view_source")
+                extractor = GeneralNewsExtractor()
+                extractor = extractor.extract(view_source, host=host)
+                self.message["extract"] = extractor
+                del self.message["next_pages"]
+                return self.message
         return self.message
+
+    def next_pages(self, url_format, netloc):
+        urls = []
+        a_list = self.bf.find_all("a")
+        for a in a_list:
+            if not a:
+                continue
+            try:
+                a = a.attrs["href"]
+            except KeyError:
+                continue
+
+            a = a.split("#")[0]
+            if a.__contains__("javascript"):
+                continue
+            if a.__contains__("@"):
+                continue
+            url = urljoin(url_format, a)
+            if netloc.__eq__(urlparse(url).netloc):
+                url_next = dict()
+                url_next["url"] = url
+                url_next["is_detail"] = False
+                for detail in self.re_detail:
+                    if re.search(detail, url):
+                        url_next["is_detail"] = True
+                        break
+                urls.append(url_next)
+        return urls

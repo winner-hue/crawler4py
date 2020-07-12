@@ -2,7 +2,6 @@ from threading import Lock
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
-from pymongo.database import Database
 
 from log import Logger
 
@@ -29,53 +28,24 @@ class Mongo(object):
     def __init_mongo(self, mongo: dict) -> bool:
         if not mongo:
             raise Exception("mongo 配置不应为空")
-        assert mongo.get("mongo_dup"), "爬虫排重库不应为空"
-        assert mongo.get("mongo_task_monitor"), "爬虫任务监控库不应为空"
-        mongo_dup = mongo.get("mongo_dup")
-        assert self.__init_mongo_dup(mongo_dup), "初始化排重库失败"
-        mongo_task_monitor = mongo.get("mongo_task_monitor")
-        assert self.__init_mongo_monitor(mongo_task_monitor), "初始化任务监控库失败"
-        return True
-
-    def __init_mongo_dup(self, mongo_dup: dict) -> bool:
-        """
-        初始化排重库
-        :param mongo_dup: 任务排重库配置
-        :return:
-        """
-        host, port = self.get_host_port(mongo_dup)
-        if mongo_dup.get("user") and mongo_dup.get("pwd"):
-            __mongo_dup = MongoClient(
-                "mongodb://{}:{}@{}:{}/".format(mongo_dup.get("user"), mongo_dup.get("pwd"), host, port),
+        mongo = mongo.get("database")
+        host, port = self.get_host_port(mongo)
+        if mongo.get("user") and mongo.get("pwd"):
+            __mongo = MongoClient(
+                "mongodb://{}:{}@{}:{}/".format(mongo.get("user"), mongo.get("pwd"), host, port),
                 maxPoolSize=10)
         else:
-            __mongo_dup = MongoClient(
+            __mongo = MongoClient(
                 "mongodb://{}:{}/".format(host, port), maxPoolSize=10)
-        db_dup = __mongo_dup.get_database("dup") if __mongo_dup.get_database("dup") else __mongo_dup[
-            "dup"]
-        self.__dup = db_dup.get_collection("dup") if db_dup.get_collection("dup") else db_dup.create_collection("dup")
-        return True
-
-    def __init_mongo_monitor(self, mongo_task_monitor: dict) -> bool:
-        """
-        初始化任务监控库
-        :param mongo_task_monitor: 任务监控库配置
-        :return:
-        """
-        host, port = self.get_host_port(mongo_task_monitor)
-        if mongo_task_monitor.get("user") and mongo_task_monitor.get("pwd"):
-            __mongo_task_monitor = MongoClient(
-                "mongodb://{}:{}@{}:{}/".format(mongo_task_monitor.get("user"), mongo_task_monitor.get("pwd"),
-                                                host, port), maxPoolSize=10)
-        else:
-            __mongo_task_monitor = MongoClient("mongodb://{}:{}/".format(host, port), maxPoolSize=10)
-        self.__monitor = __mongo_task_monitor.get_database("monitor") if __mongo_task_monitor.get_database(
-            "monitor") else \
-            __mongo_task_monitor["monitor"]
+        db = __mongo.get_database("databases") if __mongo.get_database("databases") else __mongo[
+            "databases"]
+        collection_name = mongo.get("collection_name")
+        self.collection = db.get_collection(collection_name) if db.get_collection(
+            collection_name) else db.create_collection(collection_name if collection_name else "database")
         return True
 
     def get_params(self):
-        return self.__dup, self.__monitor
+        return self.collection
 
     @staticmethod
     def get_host_port(obj: dict):
@@ -86,8 +56,7 @@ class Mongo(object):
 
 class MongoUtil(object):
     __instance = None
-    dup: Collection
-    monitor: Database
+    collection: Collection
     lock = Lock()
 
     def __init__(self):
@@ -104,10 +73,10 @@ class MongoUtil(object):
         with MongoUtil.lock:
             if not cls.__instance:
                 cls.__instance = MongoUtil()
-                cls.dup, cls.monitor = Mongo.get_instance(**setting).get_params()
+                cls.collection = Mongo.get_instance(**setting).get_params()
                 Logger.logger.info("MongoUtil实例创建成功")
             return cls.__instance
 
     @classmethod
     def insert_one(cls, params: dict):
-        cls.dup.insert_one(params)
+        cls.collection.insert_one(params)

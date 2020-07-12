@@ -1,5 +1,6 @@
 import hashlib
 import os
+import uuid
 from urllib.parse import urlparse, urljoin
 
 from dispatch.starter import Starter
@@ -17,3 +18,14 @@ start.start()
 # for root, files, names in z:
 #     if domain in names:
 #         pass
+
+# print(urlparse("https://www.baidu.com"))
+#
+# print(urljoin("https://www.baidu.com", "https://www.sina.com.cn"))
+# import datetime
+#
+# print(datetime.datetime.now() - datetime.timedelta(seconds=3600))
+# import hashlib
+#
+# print(hashlib.md5("https://news.sina.com.cn/".encode("utf-8")).hexdigest())
+
