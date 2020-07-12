@@ -1,13 +1,17 @@
 from threading import Thread
 
-from extractor.callback import call_back
+from extractor.analysis import process
 from log import Logger
 from pycrawler import Crawler
-from util.rabbitmqutil import connect
+from util.rabbitmqutil import connect, get_data, send_data
 from util.running_params import html_q, task_q, data_q
+
+import datetime
 
 
 class Extractor(Crawler):
+    mq_conn = None
+
     def simple(self):
         while not task_q.empty() or not html_q.empty() or not data_q.empty():
             task_url = task_q.get()
@@ -45,5 +49,18 @@ class Extractor(Crawler):
                 port = 5672
                 mq_queue = "extract"
 
-            mq_conn = connect(mq_queue, user, pwd, host, port)
-            call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})
+            Extractor.mq_conn = connect(mq_queue, user, pwd, host, port)
+            self.call_back(**{"no_ack": None, "channel": Extractor.mq_conn, "routing_key": mq_queue})
+
+    @staticmethod
+    @get_data
+    def call_back(ch, method, properties, body):
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        message: dict = eval(body.decode())
+        try:
+            path = Extractor.crawler_setting.get("plugins").get("extract")
+        except AttributeError:
+            path = None
+        result = process(message, path)
+        send_data(Extractor.mq_conn, '', repr(result), 'storage_dup')
+        Logger.logger.info("发送任务至排重入库")

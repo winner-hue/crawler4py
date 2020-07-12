@@ -167,8 +167,10 @@ class RedisUtil(object):
 
     @classmethod
     def monitor_task(cls, key):
-        cls.monitor.sadd(key, key)
-        cls.monitor.expire(key, cls.expire)
+        pipeline = cls.monitor.pipeline()
+        pipeline.sadd(key, key)
+        pipeline.expire(key, cls.expire)
+        pipeline.execute()
 
     @classmethod
     def release_monitor(cls, key):
