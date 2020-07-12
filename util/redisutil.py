@@ -146,7 +146,7 @@ class RedisUtil(object):
         if cls.hash_func:
             name = cls.key + str(int(key[0:2], 16) % cls.block_num)
             for f in cls.hash_func:
-                loc = f.hash(key)
+                loc = cls.hash(key, f[0], f[1])
                 RedisUtil.dup.setbit(name, loc, 1)
         else:
             RedisUtil.dup.sadd("dup", key)

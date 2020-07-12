@@ -74,8 +74,8 @@ class Downloader(Crawler):
         except AttributeError:
             path = None
         result = process(message, path)
-        if result.get("recovery"):
-            if result.get("recovery") < 3:
+        if result.get("recovery_flag"):
+            if result.get("recovery_flag") < 3:
                 send_data(Downloader.mq_conn, '', repr(result), 'recovery')
                 Logger.logger.info("回收--{}--成功".format(result.get("task_url")))
             else:
@@ -85,10 +85,11 @@ class Downloader(Crawler):
                     while True:
                         if RedisUtil.get_lock():
                             pre_exec_time = message.get("exec_time")
-                            exec_time = message.get("exec_time") - datetime.timedelta(seconds=message.get("task_cell"))
-                            SqlUtil.update_task(0, "'{}'".format(message.get("task_id")), str(exec_time),
-                                                str(pre_exec_time))
+                            exec_time = message.get("exec_time") + datetime.timedelta(seconds=message.get("task_cell"))
+                            SqlUtil.update_task(0, "'{}'".format(message.get("task_id")), "'{}'".format(str(exec_time)),
+                                                "'{}'".format(str(pre_exec_time)))
                             RedisUtil.release_lock()
+                            RedisUtil.release_monitor(message.get("task_id"))
                             break
                         time.sleep(0.3)
                 Logger.logger.info("{}--超出回收次数上限， 不做回收".format(result.get("task_url")))

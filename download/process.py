@@ -1,5 +1,4 @@
 import os
-import traceback
 
 import tldextract
 
@@ -57,8 +56,9 @@ def default(task_url, message):
                 if message.get("task_encode"):
                     message["view_source"] = r.content.decode(message.get("task_encode"))
                 else:
-                    message["view_source"] = r.text
+                    message["view_source"] = str(r.content, r.encoding, errors='replace')
             return message
         except Exception as e:
-            Logger.logger.error("下载失败， 当前下载次数{}: {}".format(i + 1, e.with_traceback(None)))
-    return message["recovery_flag"] + 1 if message["recovery_flag"] else 1
+            Logger.logger.error("---{}---下载失败， 当前下载次数{}: {}".format(task_url, i + 1, e.with_traceback(None)))
+    message["recovery_flag"] = message.get("recovery_flag") + 1 if message.get("recovery_flag") else 1
+    return message

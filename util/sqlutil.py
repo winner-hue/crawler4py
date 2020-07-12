@@ -32,7 +32,7 @@ class SqlUtil(object):
 
     @classmethod
     def get_task(cls):
-        sql = "select * from tasks where task_status=0 order by exec_time asc limit 50"
+        sql = "select * from tasks where task_status=0 and exec_time <= now() order by exec_time asc limit 50"
         cls.cursor.execute(sql)
         return cls.cursor.fetchall()
 
@@ -43,7 +43,7 @@ class SqlUtil(object):
             cls.cursor.execute(sql)
             cls.conn.commit()
         else:
-            sql = "update task set task_status={}, exec_time={}, pre_exec_time={} where task_id = {}".format(
+            sql = "update tasks set task_status={}, exec_time={}, pre_exec_time={} where task_id = {}".format(
                 task_status, args[0], args[1], task_ids)
             cls.cursor.execute(sql)
             cls.conn.commit()

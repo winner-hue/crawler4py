@@ -29,3 +29,6 @@ start.start()
 #
 # print(hashlib.md5("https://news.sina.com.cn/".encode("utf-8")).hexdigest())
 
+# 备注一下，两个问题
+# 第一个；多线程会存在chnnal已经关闭的情况
+# 第二个：布隆过滤器排重有问题
