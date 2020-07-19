@@ -13,7 +13,8 @@ import datetime
 
 
 class Dispatch(Crawler):
-    mq_conn = None
+    mq_conn_download = None
+    mq_conn_recovery = None
 
     def __init__(self, **setting):
         super(Dispatch, self).__init__(**setting)
@@ -115,9 +116,9 @@ class Dispatch(Crawler):
                 mq_queue = "dispatch"
         except AttributeError:
             mq_queue = "dispatch"
-        Dispatch.mq_conn = connect(mq_queue, user, pwd, host, port)
+        Dispatch.mq_conn_download = connect(mq_queue, user, pwd, host, port)
 
-        self.call_back(**{"no_ack": None, "channel": Dispatch.mq_conn, "routing_key": mq_queue})
+        self.call_back(**{"no_ack": None, "channel": Dispatch.mq_conn_download, "routing_key": mq_queue})
 
     def back_task(self, user, pwd, host, port):
         try:
@@ -126,9 +127,9 @@ class Dispatch(Crawler):
                 mq_queue = "recovery"
         except AttributeError:
             mq_queue = "recovery"
-        Dispatch.mq_conn = connect(mq_queue, user, pwd, host, port)
+        Dispatch.mq_conn_recovery = connect(mq_queue, user, pwd, host, port)
 
-        self.call_back(**{"no_ack": None, "channel": Dispatch.mq_conn, "routing_key": mq_queue})
+        self.call_back(**{"no_ack": None, "channel": Dispatch.mq_conn_recovery, "routing_key": mq_queue})
 
     @staticmethod
     @get_data
@@ -146,6 +147,6 @@ class Dispatch(Crawler):
                 if header:
                     message["header"] = header
                 Logger.logger.info("新任务：{}".format(message))
-                send_data(Dispatch.mq_conn, '', repr(message), 'download')
+                send_data(Dispatch.mq_conn_download, '', repr(message), 'download')
         else:
-            send_data(Dispatch.mq_conn, '', repr(message), 'download')
+            send_data(Dispatch.mq_conn_recovery, '', repr(message), 'download')

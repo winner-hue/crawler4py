@@ -17,7 +17,7 @@ setting = {
             "host": "127.0.0.1",
             "port": 6379,
             "db": 0,
-            "bloomfilter": True,
+            "bloomfilter": False,
             "blocknum": 1,
             "key": "bloomfilter"
         },

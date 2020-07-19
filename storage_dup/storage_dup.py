@@ -46,28 +46,26 @@ def get_path(task_type, path):
 
 
 def default(task_url, message):
-    key = hashlib.md5(task_url.encode("utf-8")).hexdigest()
     if message.get("next_pages"):
-        next_pages = [result for result in message.get("next_pages") if
-                      result.get("is_detail") and not RedisUtil.is_contains(key)]
-        if len(next_pages) == 0:
-            message["next_pages"] = []
-            return message
-        new_next_pages = []
-        for result in next_pages:
-            url_key = hashlib.md5(result.get("url").encode("utf-8")).hexdigest()
-            if RedisUtil.monitor_insert(message.get("task_id"), url_key):
-                new_next_pages.append(result)
-        del next_pages
-        new_next_pages.extend([result for result in message.get("next_pages") if not result.get("is_detail")])
-        message["next_pages"] = new_next_pages
+        next_pages_detail = []
+        task_id = message.get("task_id")
+        for result in message.get("next_pages"):
+            url_id = hashlib.md5(result.get("url").encode("utf-8")).hexdigest()
+            if RedisUtil.monitor_is_exist(task_id) and \
+                    not RedisUtil.is_exist(task_id, url_id) and \
+                    not RedisUtil.is_contains(url_id):
+                next_pages_detail.append(result)
+                RedisUtil.monitor_insert(task_id, hashlib.md5(result.get("url").encode("utf-8")).hexdigest())
+
+        message["next_pages"] = next_pages_detail
         return message
+
+    key = hashlib.md5(task_url.encode("utf-8")).hexdigest()
     if not RedisUtil.is_contains(key):
         message["_id"] = key
         try:
             MongoUtil.insert_one(message)
+            Logger.logger.info("---{}----入库成功".format(message.get("task_url")))
+            RedisUtil.insert(key)
         except DuplicateKeyError as e:
             Logger.logger.error("插入数据错误：{}".format(e))
-        RedisUtil.insert(key)
-        Logger.logger.info("---{}----入库成功".format(message.get("task_url")))
-        RedisUtil.del_exist(message.get("task_id"), key)

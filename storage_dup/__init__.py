@@ -74,20 +74,22 @@ class BaseStorageDup(Crawler):
                     message.get("task_id")) > 10:
                 result = process(message, path)
 
-                if message.get("next_pages"):
-
+                if len(message.get("next_pages")):
                     send_data(BaseStorageDup.mq_conn, '', repr(result), 'dispatch')
                     Logger.logger.info("发送数据至dispatch进行构造任务")
                 else:
-                    Logger.logger.info("所有数据都被排掉， 不添加数据")
+                    Logger.logger.info("所有数据都被排掉， 不添加数据, 准备关闭任务")
+                    RedisUtil.release_monitor(message.get("task_id"))
+                    Logger.logger.info("任务关闭成功")
             else:
                 Logger.logger.info("监控集合已经消失或者超出监控时间， 不再发送任务")
         if not RedisUtil.monitor_is_exist(message.get("task_id")):
             while True:
                 if RedisUtil.get_lock():
                     pre_exec_time = message.get("exec_time")
-                    exec_time = message.get("exec_time") - datetime.timedelta(seconds=message.get("task_cell"))
-                    SqlUtil.update_task(0, "'{}'".format(message.get("task_id")), str(exec_time), str(pre_exec_time))
+                    exec_time = message.get("exec_time") + datetime.timedelta(seconds=message.get("task_cell"))
+                    SqlUtil.update_task(0, "'{}'".format(message.get("task_id")), "'{}'".format(str(exec_time)),
+                                        "'{}'".format(str(pre_exec_time)))
                     RedisUtil.release_lock()
                     break
                 time.sleep(0.3)

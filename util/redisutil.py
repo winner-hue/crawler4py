@@ -128,10 +128,9 @@ class RedisUtil(object):
 
     @classmethod
     def is_contains(cls, key):
-        key = hashlib.md5(key.encode("utf-8")).hexdigest()
         ret = True
         if cls.hash_func:
-            name = cls.key + str(int(key[0:2], 16) % cls.block_num)
+            name = key + str(int(key[0:2], 16) % cls.block_num)
             for f in cls.hash_func:
                 loc = cls.hash(key, f[0], f[1])
                 ret = ret & RedisUtil.dup.getbit(name, loc)

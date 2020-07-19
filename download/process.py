@@ -1,4 +1,5 @@
 import os
+import re
 
 import tldextract
 
@@ -56,7 +57,11 @@ def default(task_url, message):
                 if message.get("task_encode"):
                     message["view_source"] = r.content.decode(message.get("task_encode"))
                 else:
-                    message["view_source"] = str(r.content, r.encoding, errors='replace')
+                    try:
+                        encoding = re.search("charset=([a-zA-Z1-9\-]+)", r.text).group(1)
+                        message["view_source"] = r.content.decode(encoding, errors="ignore")
+                    except AttributeError:
+                        message["view_source"] = str(r.content, r.encoding, errors='ignore')
             return message
         except Exception as e:
             Logger.logger.error("---{}---下载失败， 当前下载次数{}: {}".format(task_url, i + 1, e.with_traceback(None)))
