@@ -144,6 +144,7 @@ class Dispatch(Crawler):
                 header = result.get("header")
                 message["task_url"] = url
                 message["main_task_flag"] = 0
+                message["is_detail"] = result.get("is_detail")
                 if header:
                     message["header"] = header
                 Logger.logger.info("新任务：{}".format(message))

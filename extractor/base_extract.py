@@ -60,6 +60,6 @@ class BaseExtract(object):
                 for detail in self.re_detail:
                     if re.search(detail, url):
                         url_next["is_detail"] = True
+                        urls.append(url_next)
                         break
-                urls.append(url_next)
         return urls

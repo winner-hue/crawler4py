@@ -166,7 +166,7 @@ class RedisUtil(object):
     @classmethod
     def monitor_task(cls, key):
         pipeline = cls.monitor.pipeline()
-        pipeline.sadd(key, key)
+        pipeline.zadd(key, {key: 100})
         pipeline.expire(key, cls.expire)
         pipeline.execute()
 
@@ -175,21 +175,21 @@ class RedisUtil(object):
         cls.monitor.delete(key)
 
     @classmethod
-    def monitor_insert(cls, key, value):
+    def monitor_insert(cls, key, score, value):
 
         ttl = cls.monitor.ttl(key)
         if ttl > 0:
-            return cls.monitor.sadd(key, value)
+            return cls.monitor.zadd(key, {value: score})
         else:
             return False
 
     @classmethod
     def is_exist(cls, key, value):
-        return cls.monitor.sismember(key, value)
+        return cls.monitor.zscore(key, value)
 
     @classmethod
     def del_exist(cls, key, value):
-        return cls.monitor.srem(key, value)
+        return cls.monitor.zrem(key, value)
 
     @classmethod
     def monitor_is_exist(cls, key):
@@ -202,3 +202,7 @@ class RedisUtil(object):
     @classmethod
     def monitor_ttl(cls, key):
         return cls.monitor.ttl(key)
+
+    @classmethod
+    def monitor_score(cls, key):
+        return cls.monitor.zcount(key, 10, 10)

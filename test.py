@@ -1,8 +1,11 @@
+import datetime
 import hashlib
 import os
 import re
 import uuid
 from urllib.parse import urlparse, urljoin
+
+from bson import iteritems
 
 from dispatch.starter import Starter
 from download.request import request
@@ -12,8 +15,13 @@ from setting import setting
 # start = Starter.get_instance("https://www.baidu.com", **setting)
 from util.redisutil import RedisUtil
 
-# start = Starter.get_instance(**setting)
-# start.start()
+start = Starter.get_instance(**setting)
+start.start()
+
+# Logger.get_instance(**setting)
+# print(RedisUtil.get_instance(**setting).monitor_insert("f3829204e49cfe315ed26832fd3b6c0b", 1000,
+#                                                        "0830e050f85a0f8aa76011ffbf040ede"))
+# print(not 10)
 # import tldextract
 #
 # domain = tldextract.extract("https://www.baidu.com").registered_domain.replace(".", "_") + ".py"
@@ -45,19 +53,18 @@ from util.redisutil import RedisUtil
 # 之前问题已经解决， 下面是新问题
 # 目前问题是任务已经停止，但是还有大量detail_url未入库完
 
-import requests
-from faker import Faker
-
-fack = Faker("zh_CN")
-
-headers = {
-    'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36",
-    'Accept-Encoding': ', '.join(('gzip', 'deflate')),
-    'Accept': '*/*',
-    'Connection': 'keep-alive',
-}
-
-r = requests.get("https://news.sina.com.cn/", headers=headers)
-# print(r.content.decode("utf-8", errors="ignore"))
-print(r.content.decode(re.search("charset=([a-zA-Z1-9\-]+)", r.text).group(1), 'ignore'))
-
+# import requests
+# from faker import Faker
+#
+# fack = Faker("zh_CN")
+#
+# headers = {
+#     'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36",
+#     'Accept-Encoding': ', '.join(('gzip', 'deflate')),
+#     'Accept': '*/*',
+#     'Connection': 'keep-alive',
+# }
+#
+# r = requests.get("https://news.sina.com.cn/", headers=headers)
+# # print(r.content.decode("utf-8", errors="ignore"))
+# print(r.content.decode(re.search("charset=([a-zA-Z1-9\-]+)", r.text).group(1), 'ignore'))

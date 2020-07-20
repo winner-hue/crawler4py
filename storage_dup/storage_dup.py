@@ -46,7 +46,7 @@ def get_path(task_type, path):
 
 
 def default(task_url, message):
-    if message.get("next_pages"):
+    if not message.get("is_detail"):
         next_pages_detail = []
         task_id = message.get("task_id")
         for result in message.get("next_pages"):
@@ -55,17 +55,20 @@ def default(task_url, message):
                     not RedisUtil.is_exist(task_id, url_id) and \
                     not RedisUtil.is_contains(url_id):
                 next_pages_detail.append(result)
-                RedisUtil.monitor_insert(task_id, hashlib.md5(result.get("url").encode("utf-8")).hexdigest())
-
+                if result.get("is_detail"):
+                    RedisUtil.monitor_insert(task_id, 10, hashlib.md5(result.get("url").encode("utf-8")).hexdigest())
+                else:
+                    RedisUtil.monitor_insert(task_id, 100, hashlib.md5(result.get("url").encode("utf-8")).hexdigest())
         message["next_pages"] = next_pages_detail
         return message
-
-    key = hashlib.md5(task_url.encode("utf-8")).hexdigest()
-    if not RedisUtil.is_contains(key):
-        message["_id"] = key
-        try:
-            MongoUtil.insert_one(message)
-            Logger.logger.info("---{}----入库成功".format(message.get("task_url")))
-            RedisUtil.insert(key)
-        except DuplicateKeyError as e:
-            Logger.logger.error("插入数据错误：{}".format(e))
+    else:
+        key = hashlib.md5(task_url.encode("utf-8")).hexdigest()
+        if not RedisUtil.is_contains(key):
+            message["_id"] = key
+            try:
+                MongoUtil.insert_one(message)
+                Logger.logger.info("---{}----入库成功".format(message.get("task_url")))
+                RedisUtil.insert(key)
+                RedisUtil.monitor_insert(message.get("task_id"), 100, key)
+            except DuplicateKeyError as e:
+                Logger.logger.error("插入数据错误：{}".format(e))

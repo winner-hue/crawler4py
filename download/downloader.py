@@ -79,8 +79,6 @@ class Downloader(Crawler):
                 send_data(Downloader.mq_conn, '', repr(result), 'recovery')
                 Logger.logger.info("回收--{}--成功".format(result.get("task_url")))
             else:
-                RedisUtil.del_exist(message.get("task_id"),
-                                    hashlib.md5(message.get("task_url").encode("utf-8")).hexdigest())
                 if message.get("main_task_flag"):
                     while True:
                         if RedisUtil.get_lock():
@@ -90,6 +88,19 @@ class Downloader(Crawler):
                                                 "'{}'".format(str(pre_exec_time)))
                             RedisUtil.release_lock()
                             RedisUtil.release_monitor(message.get("task_id"))
+                            break
+                        time.sleep(0.3)
+                RedisUtil.del_exist(message.get("task_id"),
+                                    hashlib.md5(message.get("task_url").encode("utf-8")).hexdigest())
+                if not RedisUtil.monitor_score(message.get("task_id")):
+                    RedisUtil.release_monitor(message.get("task_id"))
+                    while True:
+                        if RedisUtil.get_lock():
+                            pre_exec_time = message.get("exec_time")
+                            exec_time = datetime.datetime.now() + datetime.timedelta(seconds=message.get("task_cell"))
+                            SqlUtil.update_task(0, "'{}'".format(message.get("task_id")), "'{}'".format(str(exec_time)),
+                                                "'{}'".format(str(pre_exec_time)))
+                            RedisUtil.release_lock()
                             break
                         time.sleep(0.3)
                 Logger.logger.info("{}--超出回收次数上限， 不做回收".format(result.get("task_url")))
