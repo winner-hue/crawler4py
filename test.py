@@ -1,22 +1,27 @@
-import datetime
-import hashlib
-import os
-import re
-import uuid
-from urllib.parse import urlparse, urljoin
-
-from bson import iteritems
+# import datetime
+# import hashlib
+# import os
+# import re
+import sys
+# import uuid
+# from urllib.parse import urlparse, urljoin
+#
+# from bson import iteritems
 
 from dispatch.starter import Starter
-from download.request import request
-from log import Logger
+# from download.request import request
+# from log import Logger
 from setting import setting
 
-# start = Starter.get_instance("https://www.baidu.com", **setting)
-from util.redisutil import RedisUtil
 
-start = Starter.get_instance(**setting)
-start.start()
+# start = Starter.get_instance("https://www.baidu.com", **setting)
+# from util.redisutil import RedisUtil
+
+
+def main():
+    print(sys.argv)
+    start = Starter.get_instance(**setting)
+    start.start()
 
 # Logger.get_instance(**setting)
 # print(RedisUtil.get_instance(**setting).monitor_insert("f3829204e49cfe315ed26832fd3b6c0b", 1000,
