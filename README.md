@@ -5,40 +5,64 @@
 
 + 安装
         
-    +   1.安装依赖包
-               
-            pip install -r requests.txt
+    +   1.安装crawler4py
             
-            pip install pycrawler
+            pip install crawler4py
         
     +   2.安装redis
             
             说明：redis用来进行排重，支持集合排重和布隆过滤器排重
                 
-            centos：yum install redis -y
-            ubuntu: sudo apt-get install redis -y
+            centos：
+                1： yum install redis-server -y
+                2： [redis官网](https://redis.io/download)
+            ubuntu: 
+                
+                1： sudo apt-get install redis-server
+                2： [redis官网](https://redis.io/download)
   
     +   3.安装mysql
             
             说明：mysql用来作为任务库，关系型数据库方便对任务进行监控和修改
                 
-            centos: yum install mysql -y
-            ubuntu: sudo apt-get install mysql -y
+            centos: 
+                1： yum install mysql-server -y
+                2： [mysql官网](https://dev.mysql.com/doc/refman/8.0/en/linux-installation.html)
+            ubuntu: 
+                1： sudo apt-get install mysql-server
+                2： [mysql官网](https://dev.mysql.com/doc/refman/8.0/en/linux-installation.html)
   
     +   4.安装MongoDB
             
             说明：MongoDB用来存储数据
                 
-            centos: yum install mongod -y
-            ubuntu: sudo apt-get install mongod -y
+            centos: 
+                1： yum install mongod-server -y
+                2： [mongodb官网](https://docs.mongodb.com/manual/installation/)
+            ubuntu: 
+                1： sudo apt-get install mongod-server
+                2： [mongodb官网](https://docs.mongodb.com/manual/installation/)
   
     +   5.安装rabbitmq
             
             说明：rabbitmq用来作为消息中转站
                 
-            centos yum install rabbitmq -y
-            ubuntu: sudo apt-get install rabbitmq -y
-            
+            centos 
+                yum install erlang-nox
+                yum install rabbitmq-server
+                    
+                可选（此处是通过命令，也可以通过界面的方式来添加）：
+                    rabbitmqctl add_user crawler4py crawler4py  
+                    rabbitmqctl set_user_tags crawler4py administrator
+                    rabbitmqctl set_permissions -p crawler4py crawler4py '.*' '.*' '.*'
+            ubuntu: 
+                sudo apt-get install erlang-nox
+                ssudo apt-get install rabbitmq-server
+                
+                可选（此处是通过命令，也可以通过界面的方式来添加）：
+                    sudo rabbitmqctl add_user crawler4py crawler4py  
+                    sudo rabbitmqctl set_user_tags crawler4py administrator
+                    sudo rabbitmqctl set_permissions -p crawler4py crawler4py '.*' '.*' '.*'
 > **Tutorial & Usage**
 
 + 使用
@@ -88,8 +112,8 @@
                "mq": {
                    "host": "127.0.0.1", 
                    "port": 5672,
-                   "user": "pycrawler",
-                   "pwd": "pycrawler"
+                   "user": "crawler4py",
+                   "pwd": "crawler4py"
                },
                # 日志配置
                "logger_path": "{}{}logging.json".format(BASE_DIR, os.sep),
@@ -97,11 +121,11 @@
                # mysql 任务数据库配置
                "sql": {
                    "driver": MySql,
-                   "user": "pycrawler",
-                   "pwd": "pycrawler",
+                   "user": "crawler4py",
+                   "pwd": "crawler4py",
                    "host": "127.0.0.1",
                    "port": 3306,
-                   "db": "pycrawler"
+                   "db": "crawler4py"
                },
                
                # 队列名称配置

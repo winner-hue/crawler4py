@@ -42,16 +42,16 @@ setting = {
     "mq": {
         "host": "127.0.0.1",
         "port": 5672,
-        "user": "pycrawler",
-        "pwd": "pycrawler"
+        "user": "crawler4py",
+        "pwd": "crawler4py"
     },
     "sql": {
         "driver": MySql,
-        "user": "pycrawler",
-        "pwd": "pycrawler",
+        "user": "crawler4py",
+        "pwd": "crawler4py",
         "host": "127.0.0.1",
         "port": 3306,
-        "db": "pycrawler"
+        "db": "crawler4py"
     },
     "mq_queue": {
         "download": "",

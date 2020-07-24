@@ -18,7 +18,7 @@ def connect(queue_name, user, pwd, host, port, exchange=None, exchange_type=None
     credentials = pika.PlainCredentials(user, pwd)
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(host=host, port=port,
-                                  virtual_host='pycrawler',
+                                  virtual_host='crawler4py',
                                   credentials=credentials))
     channel = connection.channel()
     if exchange_type is None:

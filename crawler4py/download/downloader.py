@@ -51,8 +51,8 @@ class Downloader(Crawler):
                 if not mq_queue:
                     mq_queue = "download"
             except AttributeError:
-                user = "pycrawler"
-                pwd = "pycrawler"
+                user = "crawler4py"
+                pwd = "crawler4py"
                 host = "127.0.0.1"
                 port = 5672
                 mq_queue = "download"

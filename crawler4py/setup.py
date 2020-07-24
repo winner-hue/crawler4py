@@ -4,7 +4,7 @@
 from setuptools import setup
 
 '''
-打包pycrawler
+打包crawler4py`
 '''
 
 setup(
@@ -15,8 +15,8 @@ setup(
     description=("A distributed crawler framework based on Python"),
     long_description=("A distributed crawler framework based on Python"),
     license="Apache 2.0",
-    keywords="pycrawler crawler spider pyspider",
-    url="https://github.com/winner-hue/pycrawler",
+    keywords="crawler4py crawler spider pyspider",
+    url="https://github.com/winner-hue/crawler4py",
     packages=['crawler4py.dispatch', 'crawler4py.download', 'crawler4py.extractor', 'crawler4py.storage_dup',
               'crawler4py.util', 'crawler4py'],
     # 需要安装的依赖

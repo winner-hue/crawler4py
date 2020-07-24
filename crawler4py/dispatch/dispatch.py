@@ -60,8 +60,8 @@ class Dispatch(Crawler):
                 host = self.crawler_setting.get("mq").get("host")
                 port = self.crawler_setting.get("mq").get("port")
             except AttributeError:
-                user = "pycrawler"
-                pwd = "pycrawler"
+                user = "crawler4py"
+                pwd = "crawler4py"
                 host = "127.0.0.1"
                 port = 5672
             sql_task = Thread(target=self.get_task, name="sql-task-{}".format(uuid.uuid4().hex),
