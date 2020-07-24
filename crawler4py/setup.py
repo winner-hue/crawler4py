@@ -13,11 +13,12 @@ setup(
     author="winner-hub",
     author_email="1344246287@qq.com",
     description=("A distributed crawler framework based on Python"),
+    long_description=("A distributed crawler framework based on Python"),
     license="Apache 2.0",
     keywords="pycrawler crawler spider pyspider",
     url="https://github.com/winner-hue/pycrawler",
     packages=['crawler4py.dispatch', 'crawler4py.download', 'crawler4py.extractor', 'crawler4py.storage_dup',
-              'crawler4py.util'],
+              'crawler4py.util', 'crawler4py'],
     # 需要安装的依赖
     install_requires=[
         'beautifulsoup4>=4.9.1',
@@ -47,14 +48,8 @@ setup(
 
     ],
     entry_points={'console_scripts': [
-        'redis_run = pycrawler.test:main',
+        'crawler4py = crawler4py.test:main',
     ]},
-    # long_description=read('README.md'),
-    # classifiers=[  # 程序的所属分类列表
-    #     "Development Status :: 3 - Alpha",
-    #     "Topic :: Utilities",
-    #     "License :: OSI Approved :: GNU General Public License (GPL)",
-    # ],
-    # 此项需要，否则卸载时报windows error
+
     zip_safe=False
 )
