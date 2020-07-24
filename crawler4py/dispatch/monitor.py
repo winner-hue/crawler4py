@@ -5,12 +5,12 @@ import time
 
 import psutil
 
-from dispatch.dispatch import Dispatch
-from download.downloader import Downloader
-from extractor.extractor import Extractor
-from log import Logger
-from pycrawler import Crawler
-from storage_dup import BaseStorageDup
+from crawler4py.dispatch.dispatch import Dispatch
+from crawler4py.download.downloader import Downloader
+from crawler4py.extractor.extractor import Extractor
+from crawler4py.log import Logger
+from crawler4py.crawler import Crawler
+from crawler4py.storage_dup import BaseStorageDup
 
 '''监控器'''
 

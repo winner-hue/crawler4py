@@ -3,7 +3,7 @@ from threading import Lock
 import pymysql
 from DBUtils.PooledDB import PooledDB
 
-from log import Logger
+from crawler4py.log import Logger
 
 
 class SqlUtil(object):

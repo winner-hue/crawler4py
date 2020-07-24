@@ -1,5 +1,5 @@
-from extractor.base_extract import BaseExtract
-from log import Logger
+from crawler4py.extractor.base_extract import BaseExtract
+from crawler4py.log import Logger
 
 
 class BaiDu(BaseExtract):

@@ -4,14 +4,14 @@ import uuid
 from threading import Thread
 
 import datetime
-from download.request import request
-from download.process import process
-from log import Logger
-from pycrawler import Crawler
-from util.rabbitmqutil import connect, get_data, send_data
-from util.redisutil import RedisUtil
-from util.running_params import task_q, html_q, data_q
-from util.sqlutil import SqlUtil
+from crawler4py.download.request import request
+from crawler4py.download.process import process
+from crawler4py.log import Logger
+from crawler4py.crawler import Crawler
+from crawler4py.util.rabbitmqutil import connect, get_data, send_data
+from crawler4py.util.redisutil import RedisUtil
+from crawler4py.util.running_params import task_q, html_q, data_q
+from crawler4py.util.sqlutil import SqlUtil
 
 
 class Downloader(Crawler):

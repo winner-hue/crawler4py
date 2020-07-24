@@ -1,6 +1,6 @@
 import os
 
-from util.sqlutil import MySql
+from crawler4py.util.sqlutil import MySql
 
 BASE_DIR = os.path.dirname(__file__)
 setting = {

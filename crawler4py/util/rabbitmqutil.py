@@ -1,6 +1,6 @@
 import pika
 
-from log import Logger
+from crawler4py.log import Logger
 
 
 def connect(queue_name, user, pwd, host, port, exchange=None, exchange_type=None):

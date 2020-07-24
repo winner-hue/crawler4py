@@ -8,7 +8,7 @@ from setuptools import setup
 '''
 
 setup(
-    name="pycrawler",
+    name="crawler4py",
     version="1.0",
     author="winner-hub",
     author_email="1344246287@qq.com",
@@ -16,8 +16,8 @@ setup(
     license="Apache 2.0",
     keywords="pycrawler crawler spider pyspider",
     url="https://github.com/winner-hue/pycrawler",
-    packages=['dispatch', 'download', 'extractor', 'storage_dup', 'util', ''],
-    package_dir={'': 'lib'},
+    packages=['crawler4py.dispatch', 'crawler4py.download', 'crawler4py.extractor', 'crawler4py.storage_dup',
+              'crawler4py.util'],
     # 需要安装的依赖
     install_requires=[
         'beautifulsoup4>=4.9.1',

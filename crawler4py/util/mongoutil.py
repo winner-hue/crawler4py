@@ -3,7 +3,7 @@ from threading import Lock
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-from log import Logger
+from crawler4py.log import Logger
 
 
 class Mongo(object):

@@ -1,10 +1,9 @@
-import hashlib
 from threading import Lock
 
 import redis
 from redis import Redis as RedisClient
 
-from log import Logger
+from crawler4py.log import Logger
 
 
 class Redis(object):

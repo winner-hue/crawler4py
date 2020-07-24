@@ -1,5 +1,5 @@
 # PyCrawler
-> ####  A distributed crawler framework based on Python
+> ##  A distributed crawler framework based on Python
 
 > **install**
 
@@ -112,7 +112,8 @@
                    "recovery": "", # 回收队列名称
                    "dispatch": "" # 调度队列名称
                },
-               # 任务监控时间间隔
+               
+               # 获取任务时间间隔
                "task_cell": 10,
                
                # 插件位置

@@ -8,10 +8,10 @@ import sys
 #
 # from bson import iteritems
 
-from dispatch.starter import Starter
+from crawler4py.dispatch.starter import Starter
 # from download.request import request
 # from log import Logger
-from setting import setting
+from crawler4py.setting import setting
 
 
 # start = Starter.get_instance("https://www.baidu.com", **setting)
@@ -22,6 +22,9 @@ def main():
     print(sys.argv)
     start = Starter.get_instance(**setting)
     start.start()
+
+
+main()
 
 # Logger.get_instance(**setting)
 # print(RedisUtil.get_instance(**setting).monitor_insert("f3829204e49cfe315ed26832fd3b6c0b", 1000,

@@ -2,13 +2,13 @@ import sys
 import time
 from threading import Thread
 
-from dispatch.dispatch import Dispatch
-from dispatch.monitor import Monitor
-from download.downloader import Downloader
-from extractor.extractor import Extractor
-from log import Logger
-from storage_dup import BaseStorageDup
-from util.running_params import task_q
+from crawler4py.dispatch.dispatch import Dispatch
+from crawler4py.dispatch.monitor import Monitor
+from crawler4py.download.downloader import Downloader
+from crawler4py.extractor.extractor import Extractor
+from crawler4py.log import Logger
+from crawler4py.storage_dup import BaseStorageDup
+from crawler4py.util.running_params import task_q
 
 '''启动器'''
 

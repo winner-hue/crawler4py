@@ -3,12 +3,12 @@ import time
 import uuid
 from threading import Thread
 
-from log import Logger
-from pycrawler import Crawler
-from util.mongoutil import MongoUtil
-from util.rabbitmqutil import connect, send_data, get_data
-from util.redisutil import RedisUtil
-from util.sqlutil import SqlUtil
+from crawler4py.log import Logger
+from crawler4py.crawler import Crawler
+from crawler4py.util.mongoutil import MongoUtil
+from crawler4py.util.rabbitmqutil import connect, send_data, get_data
+from crawler4py.util.redisutil import RedisUtil
+from crawler4py.util.sqlutil import SqlUtil
 import datetime
 
 

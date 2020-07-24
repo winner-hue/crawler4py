@@ -1,4 +1,4 @@
-from download.request import request
+from crawler4py.download.request import request
 
 
 def process(task_url, message):

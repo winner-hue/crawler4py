@@ -3,8 +3,8 @@ import re
 
 import tldextract
 
-from download.request import request
-from log import Logger
+from crawler4py.download.request import request
+from crawler4py.log import Logger
 
 
 def process(message, path):
@@ -24,7 +24,11 @@ def get_plugin(task_url, task_type, path):
     plugin = None
     if path:
         path = get_path(task_type, path)
-        plugins = os.listdir(path.replace(".", "/"))
+        try:
+            plugins = os.listdir(path.replace(".", "/"))
+        except FileNotFoundError as e:
+            Logger.logger.error("由于获取插件失败，将按照默认插件执行。。。。{}".format(e))
+            return plugin
         if fqdn_domain in plugins:
             plugin = __import__(path + "." + fqdn_domain.replace(".py", ""), globals(), locals(),
                                 [fqdn_domain.replace(".py", "")])

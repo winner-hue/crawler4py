@@ -1,12 +1,11 @@
 import uuid
 from threading import Thread
 
-from extractor.analysis import process
-from log import Logger
-from pycrawler import Crawler
-from util.rabbitmqutil import connect, get_data, send_data
-from util.running_params import html_q, task_q, data_q
-
+from crawler4py.extractor.analysis import process
+from crawler4py.log import Logger
+from crawler4py.crawler import Crawler
+from crawler4py.util.rabbitmqutil import connect, get_data, send_data
+from crawler4py.util.running_params import html_q, task_q, data_q
 import datetime
 
 
