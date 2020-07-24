@@ -45,7 +45,6 @@ setting = {
         "user": "pycrawler",
         "pwd": "pycrawler"
     },
-    "logger_path": "{}{}logging.json".format(BASE_DIR, os.sep),
     "sql": {
         "driver": MySql,
         "user": "pycrawler",
