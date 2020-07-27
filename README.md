@@ -63,14 +63,25 @@
                     sudo rabbitmqctl add_user crawler4py crawler4py  
                     sudo rabbitmqctl set_user_tags crawler4py administrator
                     sudo rabbitmqctl set_permissions -p crawler4py crawler4py '.*' '.*' '.*'
-> **Tutorial & Usage**
 
 + 配置
     + 配置mysql
         + 创建数据库
+        
+              create database crawler4py;
+             
         + 用户创建与授权
+              
+              create user 'crawler4py'@'%' identified by 'crawler4py';
+              grant all on *.* to 'crawler4py'@'%';
+              
         + 创建任务表
+              
+              运行table.sql中的内容                
+                
         + 添加任务
+                
+               crawler4py url
 
     + 配置setting文件
                       
