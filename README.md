@@ -65,7 +65,13 @@
                     sudo rabbitmqctl set_permissions -p crawler4py crawler4py '.*' '.*' '.*'
 > **Tutorial & Usage**
 
-+ 使用
++ 配置
+    + 配置mysql
+        + 创建数据库
+        + 用户创建与授权
+        + 创建任务表
+        + 添加任务
+
     + 配置setting文件
                       
           setting 配置必须为字典格式
@@ -148,12 +154,11 @@
                    "dispatch": "plugins.dispatch" # 调度插件位置
                }
            }
-             
-    + 添加mysql任务表
++ 使用
     
     + 编写crawler 
           
-          新建test.py文件
+          新建一个py文件
           输入：
             start = Starter.get_instance(**setting)
             start.start()
