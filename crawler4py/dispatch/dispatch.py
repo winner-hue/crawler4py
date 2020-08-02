@@ -6,15 +6,13 @@ from threading import Thread
 from crawler4py.log import Logger
 from crawler4py.crawler import Crawler
 from crawler4py.util.mongoutil import MongoUtil
-from crawler4py.util.rabbitmqutil import connect, send_data, get_data
+from crawler4py.util.rabbitmqutil import connect, send_data, get_data, get_queue
 from crawler4py.util.redisutil import RedisUtil
 from crawler4py.util.sqlutil import SqlUtil
 import datetime
 
 
 class Dispatch(Crawler):
-    mq_conn_download = None
-    mq_conn_recovery = None
 
     def __init__(self, **setting):
         super(Dispatch, self).__init__(**setting)
@@ -83,12 +81,7 @@ class Dispatch(Crawler):
         :return:
         """
         task_cell = self.crawler_setting.get("task_cell") if self.crawler_setting.get("task_cell") else 10
-        try:
-            mq_queue = self.crawler_setting.get("mq_queue").get("download")
-            if not mq_queue:
-                mq_queue = "download"
-        except AttributeError:
-            mq_queue = "download"
+        mq_queue = get_queue(self.crawler_setting, 'download')
         mq_conn = connect(mq_queue, user, pwd, host, port)
         while True:
             tasks = None
@@ -110,26 +103,16 @@ class Dispatch(Crawler):
             time.sleep(task_cell)
 
     def generate_task(self, user, pwd, host, port):
-        try:
-            mq_queue = self.crawler_setting.get("mq_queue").get("dispatch")
-            if not mq_queue:
-                mq_queue = "dispatch"
-        except AttributeError:
-            mq_queue = "dispatch"
-        Dispatch.mq_conn_download = connect(mq_queue, user, pwd, host, port)
+        mq_queue = get_queue(self.crawler_setting, "dispatch")
+        mq_conn_download = connect(mq_queue, user, pwd, host, port)
 
-        self.call_back(**{"no_ack": None, "channel": Dispatch.mq_conn_download, "routing_key": mq_queue})
+        self.call_back(**{"no_ack": None, "channel": mq_conn_download, "routing_key": mq_queue})
 
     def back_task(self, user, pwd, host, port):
-        try:
-            mq_queue = self.crawler_setting.get("mq_queue").get("recovery")
-            if not mq_queue:
-                mq_queue = "recovery"
-        except AttributeError:
-            mq_queue = "recovery"
-        Dispatch.mq_conn_recovery = connect(mq_queue, user, pwd, host, port)
+        mq_queue = get_queue(self.crawler_setting, "recovery")
+        mq_conn_recovery = connect(mq_queue, user, pwd, host, port)
 
-        self.call_back(**{"no_ack": None, "channel": Dispatch.mq_conn_recovery, "routing_key": mq_queue})
+        self.call_back(**{"no_ack": None, "channel": mq_conn_recovery, "routing_key": mq_queue})
 
     @staticmethod
     @get_data
@@ -148,6 +131,7 @@ class Dispatch(Crawler):
                 if header:
                     message["header"] = header
                 Logger.logger.info("新任务：{}".format(message))
-                send_data(Dispatch.mq_conn_download, '', repr(message), 'download')
+                mq_queue = get_queue(Dispatch.crawler_setting, 'download')
+                send_data(ch, '', repr(message), mq_queue)
         else:
-            send_data(Dispatch.mq_conn_recovery, '', repr(message), 'download')
+            send_data(ch, '', repr(message), 'download')

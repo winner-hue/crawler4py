@@ -24,13 +24,13 @@ class Starter(object):
             self.crawler_mode = setting.get("crawler_mode") if setting.get("crawler_mode") else 0
             assert (url or self.crawler_mode), "简单模式下，url和爬虫类型不能同时为false"
             self.dispatch_thread_size = setting.get("dispatch_thread_size") if setting.get(
-                "dispatch_thread_size") else 1
+                "dispatch_thread_size") is not None else 1
             self.downloader_thread_size = setting.get("downloader_thread_size") if setting.get(
-                "downloader_thread_size") else 10
+                "downloader_thread_size") is not None else 1
             self.extractor_thread_size = setting.get("extractor_thread_size") if setting.get(
-                "extractor_thread_size") else 5
+                "extractor_thread_size") is not None else 1
             self.storage_dup_thread_size = setting.get("storage_dup_thread_size") if setting.get(
-                "storage_dup_thread_size") else 2
+                "storage_dup_thread_size") is not None else 1
 
     @classmethod
     def get_instance(cls, url=None, **setting):

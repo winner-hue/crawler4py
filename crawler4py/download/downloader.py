@@ -8,14 +8,14 @@ from crawler4py.download.request import request
 from crawler4py.download.process import process
 from crawler4py.log import Logger
 from crawler4py.crawler import Crawler
-from crawler4py.util.rabbitmqutil import connect, get_data, send_data
+from crawler4py.util.commonutil import get_plugin_path
+from crawler4py.util.rabbitmqutil import connect, get_data, send_data, get_queue
 from crawler4py.util.redisutil import RedisUtil
 from crawler4py.util.running_params import task_q, html_q, data_q
 from crawler4py.util.sqlutil import SqlUtil
 
 
 class Downloader(Crawler):
-    mq_conn = None
 
     def simple(self):
         while not task_q.empty() or not html_q.empty() or not data_q.empty():
@@ -47,36 +47,32 @@ class Downloader(Crawler):
                 pwd = self.crawler_setting.get("mq").get("pwd")
                 host = self.crawler_setting.get("mq").get("host")
                 port = self.crawler_setting.get("mq").get("port")
-                mq_queue = self.crawler_setting.get("mq_queue").get("download")
-                if not mq_queue:
-                    mq_queue = "download"
+                mq_queue = get_queue(self.crawler_setting, "download")
             except AttributeError:
                 user = "crawler4py"
                 pwd = "crawler4py"
                 host = "127.0.0.1"
                 port = 5672
                 mq_queue = "download"
-            Downloader.mq_conn = connect(mq_queue, user, pwd, host, port)
+            mq_conn = connect(mq_queue, user, pwd, host, port)
             try:
                 plugin_path = self.crawler_setting.get("plugins").get("download")
             except ArithmeticError:
                 plugin_path = None
             self.call_back(
-                **{"no_ack": None, "channel": Downloader.mq_conn, "routing_key": mq_queue, "plugin_path": plugin_path})
+                **{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue, "plugin_path": plugin_path})
 
     @staticmethod
     @get_data
     def call_back(ch, method, properties, body):
         ch.basic_ack(delivery_tag=method.delivery_tag)
         message: dict = eval(body.decode())
-        try:
-            path = Downloader.crawler_setting.get("plugins").get("download")
-        except AttributeError:
-            path = None
+        path = get_plugin_path(Downloader.crawler_setting, 'download')
         result = process(message, path)
         if result.get("recovery_flag"):
             if result.get("recovery_flag") < 3:
-                send_data(Downloader.mq_conn, '', repr(result), 'recovery')
+                mq_queue = get_queue(Downloader.crawler_setting, "recovery")
+                send_data(ch, '', repr(result), mq_queue)
                 Logger.logger.info("回收--{}--成功".format(result.get("task_url")))
             else:
                 if message.get("main_task_flag"):
@@ -105,5 +101,7 @@ class Downloader(Crawler):
                         time.sleep(0.3)
                 Logger.logger.info("{}--超出回收次数上限， 不做回收".format(result.get("task_url")))
         else:
-            send_data(Downloader.mq_conn, '', repr(result), 'extract')
+            mq_queue = get_queue(Downloader.crawler_setting, "extract")
+            send_data(ch, '', repr(result), mq_queue)
+            Logger.logger.info(result)
             Logger.logger.info("发送任务至提取中心")

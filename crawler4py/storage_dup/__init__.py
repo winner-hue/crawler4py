@@ -5,7 +5,8 @@ from threading import Thread
 from crawler4py.log import Logger
 from crawler4py.crawler import Crawler
 from crawler4py.storage_dup.storage_dup import process
-from crawler4py.util.rabbitmqutil import connect, get_data, send_data
+from crawler4py.util.commonutil import get_plugin_path
+from crawler4py.util.rabbitmqutil import connect, get_data, send_data, get_queue
 from crawler4py.util.redisutil import RedisUtil
 from crawler4py.util.running_params import data_q, task_q, html_q
 import datetime
@@ -14,7 +15,6 @@ from crawler4py.util.sqlutil import SqlUtil
 
 
 class BaseStorageDup(Crawler):
-    mq_conn = None
 
     def simple(self):
         while not task_q.empty() or not html_q.empty() or not data_q.empty():
@@ -43,9 +43,7 @@ class BaseStorageDup(Crawler):
                 pwd = self.crawler_setting.get("mq").get("pwd")
                 host = self.crawler_setting.get("mq").get("host")
                 port = self.crawler_setting.get("mq").get("port")
-                mq_queue = self.crawler_setting.get("mq_queue").get("storage_dup")
-                if not mq_queue:
-                    mq_queue = "storage_dup"
+                mq_queue = get_queue(self.crawler_setting, 'storage_dup')
             except AttributeError:
                 user = "crawler4py"
                 pwd = "crawler4py"
@@ -53,18 +51,16 @@ class BaseStorageDup(Crawler):
                 port = 5672
                 mq_queue = "storage_dup"
 
-            BaseStorageDup.mq_conn = connect(mq_queue, user, pwd, host, port)
-            self.call_back(**{"no_ack": None, "channel": BaseStorageDup.mq_conn, "routing_key": mq_queue})
+            mq_conn = connect(mq_queue, user, pwd, host, port)
+            self.call_back(**{"no_ack": None, "channel": mq_conn, "routing_key": mq_queue})
 
     @staticmethod
     @get_data
     def call_back(ch, method, properties, body):
         ch.basic_ack(delivery_tag=method.delivery_tag)
         message: dict = eval(body.decode())
-        try:
-            path = BaseStorageDup.crawler_setting.get("plugins").get("storage_dup")
-        except AttributeError:
-            path = None
+        Logger.logger.info(message)
+        path = get_plugin_path(BaseStorageDup.crawler_setting, 'storage_dup')
         del message["view_source"]
         if not message.get("next_pages"):
             process(message, path)
@@ -74,7 +70,8 @@ class BaseStorageDup(Crawler):
                 result = process(message, path)
 
                 if len(message.get("next_pages")):
-                    send_data(BaseStorageDup.mq_conn, '', repr(result), 'dispatch')
+                    mq_queue = get_queue(BaseStorageDup.crawler_setting, 'dispatch')
+                    send_data(ch, '', repr(result), mq_queue)
                     Logger.logger.info("发送数据至dispatch进行构造任务")
                 else:
                     Logger.logger.info("所有数据都被排掉， 不添加数据")

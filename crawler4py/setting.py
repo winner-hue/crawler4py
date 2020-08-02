@@ -8,9 +8,9 @@ setting = {
     "crawler_mode": 1,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
     # 设置线程数量
     "dispatch_thread_size": 1,
-    "downloader_thread_size": 1,
-    "extractor_thread_size": 1,
-    "storage_dup_thread_size": 1,
+    "downloader_thread_size": 2,
+    "extractor_thread_size": 5,
+    "storage_dup_thread_size": 2,
     "redis": {
         "dup": {
             "pwd": None,

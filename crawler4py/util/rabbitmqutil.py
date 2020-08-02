@@ -75,3 +75,14 @@ def get_data(call_back):
         channel.start_consuming()
 
     return do_data
+
+
+def get_queue(setting, queue_name):
+    try:
+        mq_queue = setting.get("mq_queue").get(queue_name)
+        if not mq_queue:
+            mq_queue = queue_name
+    except AttributeError:
+        mq_queue = queue_name
+
+    return mq_queue
