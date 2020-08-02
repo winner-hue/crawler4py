@@ -17,7 +17,6 @@ class BaseExtract(object):
         self.re_match = ['http']
         # 用来匹配需要抓取的页面
         self.re_detail = [r'/\d+-\d+-\d+/\w+']
-        self.date_format = "%Y年%m月%d日 %H:%M:%S"
 
     def process(self):
         task_url = self.message.get("task_url")
@@ -29,12 +28,16 @@ class BaseExtract(object):
         for detail in self.re_detail:
             if re.search(detail, task_url):
                 view_source = self.message.get("view_source")
-                extractor = GeneralNewsExtractor()
-                extractor = extractor.extract(view_source, host=host)
+                extractor = self.get_extractor(view_source, host=host)
                 self.message["extract"] = extractor
                 del self.message["next_pages"]
                 return self.message
         return self.message
+
+    def get_extractor(self, view_source, host):
+        extractor = GeneralNewsExtractor()
+        extractor = extractor.extract(view_source, host=host)
+        return extractor
 
     def next_pages(self, url_format, netloc):
         urls = []
