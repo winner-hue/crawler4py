@@ -5,8 +5,9 @@ from threading import Thread
 
 from crawler4py.log import Logger
 from crawler4py.crawler import Crawler
+from crawler4py.util.commonutil import is_send
 from crawler4py.util.mongoutil import MongoUtil
-from crawler4py.util.rabbitmqutil import connect, send_data, get_data, get_queue
+from crawler4py.util.rabbitmqutil import connect, send_data, get_data, get_queue, get_login_info
 from crawler4py.util.redisutil import RedisUtil
 from crawler4py.util.sqlutil import SqlUtil
 import datetime
@@ -17,11 +18,19 @@ class Dispatch(Crawler):
     def __init__(self, **setting):
         super(Dispatch, self).__init__(**setting)
         self.dispatch = []
+        self.dispatch_sub = [True, True, True]
         self.downloader = []
         self.extractor = []
         self.storage_dup = []
 
+        # mq连接参数
+        self.mq_params = get_login_info(self.crawler_setting)
+
     def start(self):
+        """
+        调度中心启动爬虫其他控制中心
+        :return:
+        """
         for index, dispatch in enumerate(self.dispatch):
             Thread(target=dispatch.run, name=f"dispatch--{index}").start()
 
@@ -35,9 +44,13 @@ class Dispatch(Crawler):
             Thread(target=storage_dup.run, name=f"storage_dup--{index}").start()
 
     def run(self):
+        """
+        调度中心启动
+        :return:
+        """
         try:
             Logger.logger.info("dispatch 开始启动。。。")
-            t1 = Thread(target=self.process)
+            t1 = Thread(target=self.process, name="dispatch-{}".format(uuid.uuid4().hex))
             t1.start()
             Logger.logger.info("dispatch 启动成功。。。")
             t1.join()
@@ -45,6 +58,10 @@ class Dispatch(Crawler):
             Logger.logger.info("dispatch 启动失败：{}".format(e))
 
     def process(self):
+        """
+        调度中心启动任务提取，任务回收，任务生成线程
+        :return:
+        """
         if self.crawler_setting.get("crawler_mode"):
             try:
                 RedisUtil.get_instance(**self.crawler_setting)
@@ -52,66 +69,72 @@ class Dispatch(Crawler):
                 MongoUtil.get_instance(**self.crawler_setting)
             except Exception:
                 raise Exception("数据库初始化失败， 请检查配置文件")
-            try:
-                user = self.crawler_setting.get("mq").get("user")
-                pwd = self.crawler_setting.get("mq").get("pwd")
-                host = self.crawler_setting.get("mq").get("host")
-                port = self.crawler_setting.get("mq").get("port")
-            except AttributeError:
-                user = "crawler4py"
-                pwd = "crawler4py"
-                host = "127.0.0.1"
-                port = 5672
-            sql_task = Thread(target=self.get_task, name="sql-task-{}".format(uuid.uuid4().hex),
-                              args=(user, pwd, host, port))
-            generate_task = Thread(target=self.generate_task, name="generate-task-{}".format(uuid.uuid4().hex),
-                                   args=(user, pwd, host, port))
-            back_task = Thread(target=self.back_task, name="back-task-{}".format(uuid.uuid4().hex),
-                               args=(user, pwd, host, port))
-            sql_task.start()
-            generate_task.start()
-            back_task.start()
-            sql_task.join()
-            generate_task.join()
-            back_task.join()
 
-    def get_task(self, user, pwd, host, port):
+            dispatch_config = self.crawler_setting.get("dispatch_thread_size")
+            if isinstance(dispatch_config, list):
+                self.dispatch_sub = dispatch_config[1:]
+                self._start()
+            else:
+                self._start()
+
+    def _start(self):
+        """
+        启动任务
+        :param params:
+        :param user:
+        :param pwd:
+        :param host:
+        :param port:
+        :return:
+        """
+        if self.dispatch_sub[0]:
+            sql_task = Thread(target=self.get_task, name="sql-task-{}".format(uuid.uuid4().hex))
+            sql_task.start()
+        if self.dispatch_sub[1]:
+            generate_task = Thread(target=self.generate_task, name="generate-task-{}".format(uuid.uuid4().hex))
+            generate_task.start()
+        if self.dispatch_sub[2]:
+            back_task = Thread(target=self.back_task, name="back-task-{}".format(uuid.uuid4().hex))
+            back_task.start()
+
+    def get_task(self):
         """
         从数据库中定时获取需要执行的任务，发送至下载队列
         :return:
         """
+
         task_cell = self.crawler_setting.get("task_cell") if self.crawler_setting.get("task_cell") else 10
         mq_queue = get_queue(self.crawler_setting, 'download')
-        mq_conn = connect(mq_queue, user, pwd, host, port)
+        mq_conn = connect(mq_queue, self.mq_params[0], self.mq_params[1], self.mq_params[2], self.mq_params[3])
         while True:
-            tasks = None
             if RedisUtil.get_lock():
                 tasks = SqlUtil.get_task()
-                task_ids = ["'{}'".format(task.get("task_id")) for task in tasks]
-                if task_ids:
-                    SqlUtil.update_task(1, task_ids)
-                for task in tasks:
-                    task_id = task.get("task_id")
-                    RedisUtil.monitor_task(task_id)
-                    task["main_task_flag"] = 1
-                    message = repr(task)
-                    send_data(mq_conn, '', message, mq_queue)
+                if tasks:
+                    for task in tasks:
+                        task_id = task.get("task_id")
+                        RedisUtil.monitor_task(task_id)
+                        task["main_task_flag"] = 1
+                        message = repr(task)
+                        is_send(self.mq_params, self.crawler_setting, mq_queue)
+                        send_data(mq_conn, '', message, mq_queue)
+                        SqlUtil.update_task(1, "'{}'".format(task_id), "'{}'".format(task.get("exec_time")),
+                                            "'{}'".format(task.get("pre_exec_time")))
                     Logger.logger.info("任务发送完成, 开始进行休眠, 休眠..{}s..".format(task_cell))
+                else:
+                    Logger.logger.info("没有可提取的任务，开始进行休眠，休眠..{}s..".format(task_cell))
                 RedisUtil.release_lock()
-            if not tasks:
-                Logger.logger.info("未抢到锁或没有可提取任务，休眠..{}s..".format(task_cell))
+            else:
+                Logger.logger.info("未抢到锁，休眠..{}s..".format(task_cell))
             time.sleep(task_cell)
 
-    def generate_task(self, user, pwd, host, port):
+    def generate_task(self):
         mq_queue = get_queue(self.crawler_setting, "dispatch")
-        mq_conn_download = connect(mq_queue, user, pwd, host, port)
-
+        mq_conn_download = connect(mq_queue, self.mq_params[0], self.mq_params[1], self.mq_params[2], self.mq_params[3])
         self.call_back(**{"no_ack": None, "channel": mq_conn_download, "routing_key": mq_queue})
 
-    def back_task(self, user, pwd, host, port):
+    def back_task(self):
         mq_queue = get_queue(self.crawler_setting, "recovery")
-        mq_conn_recovery = connect(mq_queue, user, pwd, host, port)
-
+        mq_conn_recovery = connect(mq_queue, self.mq_params[0], self.mq_params[1], self.mq_params[2], self.mq_params[3])
         self.call_back(**{"no_ack": None, "channel": mq_conn_recovery, "routing_key": mq_queue})
 
     @staticmethod
@@ -132,6 +155,8 @@ class Dispatch(Crawler):
                     message["header"] = header
                 Logger.logger.info("新任务：{}".format(message))
                 mq_queue = get_queue(Dispatch.crawler_setting, 'download')
+                mq_params = get_login_info(Dispatch.crawler_setting)
+                is_send(mq_params, Dispatch.crawler_setting, mq_queue)
                 send_data(ch, '', repr(message), mq_queue)
         else:
             send_data(ch, '', repr(message), 'download')

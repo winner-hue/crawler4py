@@ -50,13 +50,14 @@ class Monitor(object):
     def thread_job(*args):
         """
         线程监控
-        :param args: 0:下载线程数量,1:解析线程数量,2:入库排重线程数量,3:调度线程数量 
+        :param args: 0:下载线程数量,1:解析线程数量,2:入库排重线程数量,3:调度线程数量,4:调度中心启动任务判断
         :return: 
         """
         downloader_size = args[0]
         extractor_size = args[1]
         storage_dup_size = args[2]
         dispatch_size = args[3]
+        dispatch_sub = args[4]
 
         downloader = [re.search(r"(\d+)", name.name).group(1) for name in threading.enumerate() if
                       name.name.__contains__("download")]
@@ -64,8 +65,13 @@ class Monitor(object):
                      name.name.__contains__("extractor")]
         storage_dup = [re.search(r"(\d+)", name.name).group(1) for name in threading.enumerate() if
                        name.name.__contains__("storage_dup")]
-        dispatch = [re.search(r"(\d+)", name.name).group(1) for name in threading.enumerate() if
-                    name.name.__contains__("dispatch")]
+
+        sql_task = [re.search(r"(\w+)", name.name).group(1) for name in threading.enumerate() if
+                    name.name.__contains__("sql-task-")]
+        generate_task = [re.search(r"(\w+)", name.name).group(1) for name in threading.enumerate() if
+                         name.name.__contains__("generate-task-")]
+        back_task = [re.search(r"(\w+)", name.name).group(1) for name in threading.enumerate() if
+                     name.name.__contains__("back-task-")]
 
         if len(downloader) < downloader_size:
             need_review = [i for i in range(downloader_size) if i not in downloader]
@@ -83,11 +89,27 @@ class Monitor(object):
                 Logger.logger.info(f"重启线程：storage_dup--{index}")
                 threading.Thread(target=BaseStorageDup(**Crawler.crawler_setting).run,
                                  name=f"storage_dup--{index}").start()
-        if len(dispatch) < dispatch_size:
-            need_review = [i for i in range(dispatch_size) if i not in dispatch]
-            for index in need_review:
-                Logger.logger.info(f"重启线程：dispatch--{index}")
-                threading.Thread(target=Dispatch(**Crawler.crawler_setting).run, name=f"dispatch--{index}").start()
+        if dispatch_sub[1]:
+            if len(generate_task) < dispatch_size:
+                need_review = [i for i in range(dispatch_size) if i not in generate_task]
+                for index in need_review:
+                    Logger.logger.info(f"重启线程：generate-task-{index}")
+                    threading.Thread(target=Dispatch(**Crawler.crawler_setting).generate_task,
+                                     name=f"generate-task-{index}").start()
+        if dispatch_sub[2]:
+            if len(back_task) < dispatch_size:
+                need_review = [i for i in range(dispatch_size) if i not in back_task]
+                for index in need_review:
+                    Logger.logger.info(f"重启线程：back-task-{index}")
+                    threading.Thread(target=Dispatch(**Crawler.crawler_setting).back_task,
+                                     name=f"back-task-{index}").start()
+        if dispatch_sub[0]:
+            if len(sql_task) < dispatch_size:
+                need_review = [i for i in range(dispatch_size) if i not in sql_task]
+                for index in need_review:
+                    Logger.logger.info(f"重启线程：back-task-{index}")
+                    threading.Thread(target=Dispatch(**Crawler.crawler_setting).get_task,
+                                     name=f"back-task-{index}").start()
 
     @staticmethod
     def sys_monitor():
@@ -100,7 +122,7 @@ class Monitor(object):
             cpu_per = psutil.cpu_percent()
             memory = psutil.virtual_memory().percent
 
-            if cpu_per > 99 or memory > 99:
+            if memory > 99:
                 Logger.logger.info("系统退出：cpu状态：{}, 内存状态：{}".format(cpu_per, memory))
                 sys.exit(0)
             else:

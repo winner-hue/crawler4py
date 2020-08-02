@@ -86,3 +86,19 @@ def get_queue(setting, queue_name):
         mq_queue = queue_name
 
     return mq_queue
+
+
+def get_login_info(setting):
+    try:
+        user = setting.get("mq").get("user")
+        pwd = setting.get("mq").get("pwd")
+        host = setting.get("mq").get("host")
+        port = setting.get("mq").get("port")
+        api_port = setting.get("mq").get("api_port")
+    except AttributeError:
+        user = "crawler4py"
+        pwd = "crawler4py"
+        host = "127.0.0.1"
+        port = 5672
+        api_port = 15672
+    return user, pwd, host, port, api_port

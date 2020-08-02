@@ -23,8 +23,15 @@ class Starter(object):
             self.setting = setting
             self.crawler_mode = setting.get("crawler_mode") if setting.get("crawler_mode") else 0
             assert (url or self.crawler_mode), "简单模式下，url和爬虫类型不能同时为false"
-            self.dispatch_thread_size = setting.get("dispatch_thread_size") if setting.get(
+
+            dispatch_thread_size = setting.get("dispatch_thread_size") if setting.get(
                 "dispatch_thread_size") is not None else 1
+            if isinstance(dispatch_thread_size, list):
+                self.dispatch_sub = dispatch_thread_size[1:]
+                dispatch_thread_size = dispatch_thread_size[0]
+            else:
+                self.dispatch_sub = [True, True, True]
+            self.dispatch_thread_size = dispatch_thread_size
             self.downloader_thread_size = setting.get("downloader_thread_size") if setting.get(
                 "downloader_thread_size") is not None else 1
             self.extractor_thread_size = setting.get("extractor_thread_size") if setting.get(
@@ -79,6 +86,6 @@ class Starter(object):
         """
         Thread(target=Monitor.get_instance().thread_monitor,
                args=(self.downloader_thread_size, self.extractor_thread_size, self.storage_dup_thread_size,
-                     self.dispatch_thread_size), name="thread_monitor").start()
+                     self.dispatch_thread_size, self.dispatch_sub), name="thread_monitor").start()
 
         Thread(target=Monitor.get_instance().sys_monitor, name="sys-monitor").start()

@@ -8,9 +8,11 @@ setting = {
     "crawler_mode": 1,  # 爬虫模式， 1表示复杂模式， 0表示简单模式
     # 设置线程数量
     "dispatch_thread_size": 1,
-    "downloader_thread_size": 2,
-    "extractor_thread_size": 5,
-    "storage_dup_thread_size": 2,
+    "downloader_thread_size": 0,
+    "extractor_thread_size": 0,
+    "storage_dup_thread_size": 0,
+    # 限制下载任务队列的大小， 当超出一定值时， 将不再发送任务至下载队列
+    # "download_task_size_limit": 2,
     "redis": {
         "dup": {
             "pwd": None,
@@ -43,7 +45,8 @@ setting = {
         "host": "127.0.0.1",
         "port": 5672,
         "user": "crawler4py",
-        "pwd": "crawler4py"
+        "pwd": "crawler4py",
+        "api_port": 15672
     },
     "sql": {
         "driver": MySql,
