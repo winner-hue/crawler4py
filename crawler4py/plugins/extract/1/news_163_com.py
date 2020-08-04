@@ -5,9 +5,9 @@ from gne import GeneralNewsExtractor
 from crawler4py.extractor.base_extract import BaseExtract
 
 
-class BaiDu(BaseExtract):
+class News(BaseExtract):
     def __init__(self, message):
-        super(BaiDu, self).__init__(message)
+        super(News, self).__init__(message)
         # 用来匹配适合的插件类，用来解析匹配的页面
         self.re_match = ['https://news.163.com/']
         # 用来匹配需要抓取的页面

@@ -66,114 +66,130 @@
 
 + 配置
     + 配置mysql
-        + 创建数据库
-        
-              create database crawler4py;
-             
+    
         + 用户创建与授权
               
               create user 'crawler4py'@'%' identified by 'crawler4py';
               grant all on *.* to 'crawler4py'@'%';
               
+        + 创建数据库
+        
+              1. create database crawler4py;
+              2. manager --create_db (注：根据实际情况配置具体参数，参数擦看---manager --help)
+              
         + 创建任务表
               
-              运行table.sql中的内容                
+              1. 运行table.sql中的内容                
+              2. manager --create_table
                 
         + 添加任务
                 
-               crawler4py url
+              1. 手动操作数据库添加任务
+              2. manager --add_task --task_url 网址
 
     + 配置setting文件
                       
           setting 配置必须为字典格式
-           setting = {
-               "base_dir": BASE_DIR, # 当前目录路径 一般为os.path.dirname(__file__)
-               "crawler_mode": 1,  # 爬虫模式， 1表示集群模式， 0 表示简单单机模式（目前尚不支持）
-               # 设置线程数量
-               "dispatch_thread_size": 1, # 调度中心线程数量
-               "downloader_thread_size": 1, # 下载器线程数量
-               "extractor_thread_size": 1, # 提取器线程数量
-               "storage_dup_thread_size": 1, # 入库排重线程数量
-               # 排重库和任务监控库配置
-               "redis": {
-                   # 排重库配置
-                   "dup": {
-                       "pwd": None,
-                       "host": "127.0.0.1", 
-                       "port": 6379,
-                       "db": 0,
-                       "bloomfilter": False, # 是否采用布隆过滤器，未配置情况默认false
-                       "blocknum": 1, # 布隆过滤器块设置， 1个块表示256M
-                       "key": "bloomfilter" # key表示在排重库在redis中的名称
-                   },
-                   # 任务监控库配置
-                   "task_monitor": {
-                       "pwd": None,
-                       "host": "127.0.0.1",
-                       "port": 6379,
-                       "db": 0,
-                       "expire": 10 * 60 # 表示任务过期时间， 如果任务在规定时间未跑完，则关闭任务，默认10分钟
-                   },
-               },
-               "mongo": {
-                   # 入库
-                   "database": {
-                       "user": None,
-                       "pwd": None,
-                       "host": "127.0.0.1",
-                       "port": 27017,
-                       "collection_name": "database"
-                   }
-               },
-               # rabbitmq 配置
-               "mq": {
-                   "host": "127.0.0.1", 
-                   "port": 5672,
-                   "user": "crawler4py",
-                   "pwd": "crawler4py"
-               },
-               # 日志配置
-               "logger_path": "{}{}logging.json".format(BASE_DIR, os.sep),
-               
-               # mysql 任务数据库配置
-               "sql": {
-                   "driver": MySql,
-                   "user": "crawler4py",
-                   "pwd": "crawler4py",
-                   "host": "127.0.0.1",
-                   "port": 3306,
-                   "db": "crawler4py"
-               },
-               
-               # 队列名称配置
-               "mq_queue": {
-                   "download": "", # 下载队列名称
-                   "extract": "", # 提取队列名称
-                   "storage_dup": "", # 入库排重队列名称
-                   "recovery": "", # 回收队列名称
-                   "dispatch": "" # 调度队列名称
-               },
-               
-               # 获取任务时间间隔
-               "task_cell": 10,
-               
-               # 插件位置
-               "plugins": {
-                   "download": "plugins.download", # 下载插件位置
-                   "extract": "plugins.extract", # 提取插件位置
-                   "storage_dup": "plugins.storage_dup", # 排重入库插件位置
-                   "dispatch": "plugins.dispatch" # 调度插件位置
-               }
-           }
+            BASE_DIR = os.path.dirname(__file__)
+            setting = {
+                "base_dir": BASE_DIR,
+                "crawler_mode": 1,  # 爬虫模式， 1表示复杂模式， 0表示简单模式（已废弃）
+                # 设置线程数量
+                "dispatch_thread_size": 1,
+                "downloader_thread_size": 0,
+                "extractor_thread_size": 0,
+                "storage_dup_thread_size": 0,
+                # 限制下载任务队列的大小， 当超出一定值时， 将不再发送任务至下载队列
+                "download_task_size_limit": 2,
+                # redis 配置
+                "redis": {
+                    # 排重库配置
+                    "dup": {
+                        "pwd": None,
+                        "host": "127.0.0.1",
+                        "port": 6379,
+                        "db": 0,
+                        # 如果使用布隆过滤器， 则需配置
+                        "bloomfilter": False,
+                        "blocknum": 1,
+                    },
+                    # 临时任务库配置， 用于监控运行中的任务
+                    "task_monitor": {
+                        "pwd": None,
+                        "host": "127.0.0.1",
+                        "port": 6379,
+                        "db": 0,
+                        "expire": 10 * 60
+                    },
+                },
+                # mongodb配置
+                "mongo": {
+                    "database": {
+                        "user": None,
+                        "pwd": None,
+                        "host": "127.0.0.1",
+                        "port": 27017,
+                        "collection_name": "database"
+                    }
+                },
+                # rabbitmq 配置
+                "mq": {
+                    "host": "127.0.0.1",
+                    "port": 5672,
+                    "user": "crawler4py",
+                    "pwd": "crawler4py",
+                    "api_port": 15672
+                },
+                # mysql 配置
+                "sql": {
+                    "driver": MySql,
+                    "user": "crawler4py",
+                    "pwd": "crawler4py",
+                    "host": "127.0.0.1",
+                    "port": 3306,
+                    "db": "crawler4py"
+                },
+                # rabbitmq 队列名称配置
+                "mq_queue": {
+                    "download": "",
+                    "extract": "",
+                    "storage_dup": "",
+                    "recovery": "",
+                    "dispatch": ""
+                },
+                # 每次获取任务的间隔时间，以秒为单位
+                "task_cell": 10,
+                # 各个中心插件位置配置
+                "plugins": {
+                    "download": "plugins.download",
+                    "extract": "plugins.extract",
+                    "storage_dup": "plugins.storage_dup",
+                    "dispatch": "plugins.dispatch"   # 目前没有调度插件，后续增加
+                }
+            }
+
 + 使用
     
-    + 编写crawler 
+    + 简单demo 
           
-          新建一个py文件
+          新建py文件
           输入：
             start = Starter.get_instance(**setting)
             start.start()
-          即可开启爬虫
+          运行即可开启爬虫
+    
+    + 撰写插件
+          
+          为不同的站点开发相应的插件， 需要配置setting的plugins。在配置好文件目录、以及任务类型（可选）。具体可以参照项目中plugins文件夹的配置方式
+          下载器插件：
+               按照网址域名编写py文件， 例如域名为baidu.com, 则py文件应为baidu_com.py
+               接着只需要在文件中定义process(task_url, message) 方法， 便可以更改下载逻辑
+          提取插件：
+               按照网址域名编写py文件， 例如域名为baidu.com, 则py文件应为baidu_com.py
+               接着在文件中定义自己的类，类名没有限制，但是需要继承基类 BaseExtract， 按照自己的需要，实现不同的逻辑
+          排重入库插件：
+               按照网址域名编写py文件， 例如域名为baidu.com, 则py文件应为baidu_com.py
+               接着只需要在文件中定义process(task_url, message) 方法， 便可以更改下载逻辑
           
           
   
