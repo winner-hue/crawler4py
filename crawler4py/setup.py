@@ -48,7 +48,7 @@ setup(
 
     ],
     entry_points={'console_scripts': [
-        'crawler4py = crawler4py.crawler4py:main',
+        'crawler4py = crawler4py.manager:main',
     ]},
 
     zip_safe=False

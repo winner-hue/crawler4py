@@ -18,7 +18,7 @@ class Dispatch(Crawler):
     def __init__(self, **setting):
         super(Dispatch, self).__init__(**setting)
         self.dispatch = []
-        self.dispatch_sub = [True, True, True]
+        self.dispatch_sub = [True, True, True]  # 调度中心 任务下发，任务生成，任务回收启动配置
         self.downloader = []
         self.extractor = []
         self.storage_dup = []
@@ -102,7 +102,6 @@ class Dispatch(Crawler):
         从数据库中定时获取需要执行的任务，发送至下载队列
         :return:
         """
-
         task_cell = self.crawler_setting.get("task_cell") if self.crawler_setting.get("task_cell") else 10
         mq_queue = get_queue(self.crawler_setting, 'download')
         mq_conn = connect(mq_queue, self.mq_params[0], self.mq_params[1], self.mq_params[2], self.mq_params[3])
@@ -115,6 +114,7 @@ class Dispatch(Crawler):
                         RedisUtil.monitor_task(task_id)
                         task["main_task_flag"] = 1
                         message = repr(task)
+                        # 判断是否超出队列限制大小，超出则不下发
                         is_send(self.mq_params, self.crawler_setting, mq_queue)
                         send_data(mq_conn, '', message, mq_queue)
                         SqlUtil.update_task(1, "'{}'".format(task_id), "'{}'".format(task.get("exec_time")),
@@ -128,11 +128,19 @@ class Dispatch(Crawler):
             time.sleep(task_cell)
 
     def generate_task(self):
+        """
+        生成任务
+        :return:
+        """
         mq_queue = get_queue(self.crawler_setting, "dispatch")
         mq_conn_download = connect(mq_queue, self.mq_params[0], self.mq_params[1], self.mq_params[2], self.mq_params[3])
         self.call_back(**{"no_ack": None, "channel": mq_conn_download, "routing_key": mq_queue})
 
     def back_task(self):
+        """
+        回收任务
+        :return:
+        """
         mq_queue = get_queue(self.crawler_setting, "recovery")
         mq_conn_recovery = connect(mq_queue, self.mq_params[0], self.mq_params[1], self.mq_params[2], self.mq_params[3])
         self.call_back(**{"no_ack": None, "channel": mq_conn_recovery, "routing_key": mq_queue})
@@ -140,6 +148,14 @@ class Dispatch(Crawler):
     @staticmethod
     @get_data
     def call_back(ch, method, properties, body):
+        """
+        rabitmq 回调消费者汉书， 如果有next_pages 则为生成任务， 没有则为回收任务
+        :param ch:
+        :param method:
+        :param properties:
+        :param body:
+        :return:
+        """
         ch.basic_ack(delivery_tag=method.delivery_tag)
         message: dict = eval(body.decode())
         if message.get("next_pages"):

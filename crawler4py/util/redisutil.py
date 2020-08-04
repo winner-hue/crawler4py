@@ -127,6 +127,11 @@ class RedisUtil(object):
 
     @classmethod
     def is_contains(cls, key):
+        """
+        排重
+        :param key:
+        :return:
+        """
         ret = True
         if cls.hash_func:
             name = key + str(int(key[0:2], 16) % cls.block_num)
@@ -175,7 +180,13 @@ class RedisUtil(object):
 
     @classmethod
     def monitor_insert(cls, key, score, value):
-
+        """
+        临时任务插入数据
+        :param key:
+        :param score:
+        :param value:
+        :return:
+        """
         ttl = cls.monitor.ttl(key)
         if ttl > 0:
             return cls.monitor.zadd(key, {value: score})
@@ -192,6 +203,11 @@ class RedisUtil(object):
 
     @classmethod
     def monitor_is_exist(cls, key):
+        """
+        判断临时任务库是否存在
+        :param key:
+        :return:
+        """
         ttl = cls.monitor.ttl(key)
         if ttl > 0:
             return True

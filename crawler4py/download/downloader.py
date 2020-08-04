@@ -75,6 +75,7 @@ class Downloader(Crawler):
                 send_data(ch, '', repr(result), mq_queue)
                 Logger.logger.info("回收--{}--成功".format(result.get("task_url")))
             else:
+                # 主任务回收， 则需要更新任务状态， 以及清除调在redis中生成的临时任务库
                 if message.get("main_task_flag"):
                     while True:
                         if RedisUtil.get_lock():
@@ -86,8 +87,11 @@ class Downloader(Crawler):
                             RedisUtil.release_monitor(message.get("task_id"))
                             break
                         time.sleep(0.3)
+                # 任务下载失败， 都需要清除调redis临时任务库中的url
                 RedisUtil.del_exist(message.get("task_id"),
                                     hashlib.md5(message.get("task_url").encode("utf-8")).hexdigest())
+
+                # 进行判断， 如果redis临时任务库中所有的数据的分没有10， 则关闭任务（注：分值为10表示详细页面， 分值为100表示列表页面）
                 if not RedisUtil.monitor_score(message.get("task_id")):
                     RedisUtil.release_monitor(message.get("task_id"))
                     while True:

@@ -18,6 +18,7 @@ class Starter(object):
 
     def __init__(self, url=None, **setting):
         if not Starter.__instance:
+            # 目前简单模式属于废弃状态， 不必考虑， 后续不会开发，会移除调
             super(Starter, self).__init__()
             self.url = url
             self.setting = setting

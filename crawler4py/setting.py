@@ -56,11 +56,11 @@ setting = {
         "db": "crawler4py"
     },
     "mq_queue": {
-        "download": "",
-        "extract": "",
-        "storage_dup": "",
-        "recovery": "",
-        "dispatch": ""
+        # "download": "",
+        # "extract": "",
+        # "storage_dup": "",
+        # "recovery": "",
+        # "dispatch": ""
     },
     "task_cell": 10,
     "plugins": {

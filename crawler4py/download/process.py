@@ -27,7 +27,6 @@ def get_plugin(task_url, task_type, path):
         try:
             plugins = os.listdir(path.replace(".", "/"))
         except FileNotFoundError as e:
-            Logger.logger.error("由于获取插件失败，将按照默认插件执行。。。。{}".format(e))
             return plugin
         if fqdn_domain in plugins:
             plugin = __import__(path + "." + fqdn_domain.replace(".py", ""), globals(), locals(),
@@ -49,6 +48,7 @@ def get_path(task_type, path):
 
 def default(task_url, message):
     header = message.get("header")
+    # 下载默认重试3次
     for i in range(3):
         try:
             if header:
@@ -62,6 +62,7 @@ def default(task_url, message):
                     message["view_source"] = r.content.decode(message.get("task_encode"))
                 else:
                     try:
+                        # 自动匹配页面编码格式进行解码
                         encoding = re.search("charset=([a-zA-Z1-9\-]+)", r.text).group(1)
                         message["view_source"] = r.content.decode(encoding, errors="ignore")
                     except AttributeError:

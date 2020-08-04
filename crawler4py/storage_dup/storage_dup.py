@@ -29,7 +29,6 @@ def get_plugin(task_url, task_type, path):
         try:
             plugins = os.listdir(path.replace(".", "/"))
         except FileNotFoundError as e:
-            Logger.logger.error("由于获取插件失败，将按照默认插件执行。。。。{}".format(e))
             return plugin
         if fqdn_domain in plugins:
             plugin = __import__(path + "." + fqdn_domain.replace(".py", ""), globals(), locals(),
@@ -50,6 +49,7 @@ def get_path(task_type, path):
 
 
 def default(task_url, message):
+    # 非详细页面， 判断是否需要入库
     if not message.get("is_detail"):
         next_pages_detail = []
         task_id = message.get("task_id")
@@ -65,6 +65,7 @@ def default(task_url, message):
                     RedisUtil.monitor_insert(task_id, 100, hashlib.md5(result.get("url").encode("utf-8")).hexdigest())
         message["next_pages"] = next_pages_detail
         return message
+    # 详细页面进行入库， 并进入排重库
     else:
         key = hashlib.md5(task_url.encode("utf-8")).hexdigest()
         if not RedisUtil.is_contains(key):

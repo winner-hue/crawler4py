@@ -28,7 +28,6 @@ def get_plugin(task_url, task_type, path):
         try:
             plugins = os.listdir(path.replace(".", "/"))
         except FileNotFoundError as e:
-            Logger.logger.error("由于获取插件失败，将按照默认插件执行。。。。{}".format(e))
             return plugin
         if fqdn_domain in plugins:
             plugin = __import__(path + "." + fqdn_domain.replace(".py", ""), globals(), locals(),
@@ -41,6 +40,13 @@ def get_plugin(task_url, task_type, path):
 
 
 def get_class(task_plugin, task_url, message):
+    """
+    匹配插件
+    :param task_plugin:
+    :param task_url:
+    :param message:
+    :return:
+    """
     for name, obj in inspect.getmembers(task_plugin):
         if inspect.isclass(obj):
             plugin_class = obj(message)

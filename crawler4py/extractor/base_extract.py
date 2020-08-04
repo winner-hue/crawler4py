@@ -25,12 +25,13 @@ class BaseExtract(object):
         netloc = parse.netloc
         host = "{}://{}/".format(scheme, netloc)
         self.message["next_pages"] = self.next_pages(host, netloc)
+
         for detail in self.re_detail:
             if re.search(detail, task_url):
                 view_source = self.message.get("view_source")
                 extractor = self.get_extractor(view_source, host=host)
                 self.message["extract"] = extractor
-                del self.message["next_pages"]
+                del self.message["next_pages"]  # 详细页面删掉下一页链接
                 return self.message
         return self.message
 
@@ -40,6 +41,12 @@ class BaseExtract(object):
         return extractor
 
     def next_pages(self, url_format, netloc):
+        """
+        获取下一页
+        :param url_format:
+        :param netloc:
+        :return:
+        """
         urls = []
         a_list = self.bf.find_all("a")
         for a in a_list:

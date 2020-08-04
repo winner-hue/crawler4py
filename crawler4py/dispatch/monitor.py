@@ -59,6 +59,7 @@ class Monitor(object):
         dispatch_size = args[3]
         dispatch_sub = args[4]
 
+        # 获取正在运行的线程数量
         downloader = [re.search(r"(\d+)", name.name).group(1) for name in threading.enumerate() if
                       name.name.__contains__("download")]
         extractor = [re.search(r"(\d+)", name.name).group(1) for name in threading.enumerate() if
@@ -73,6 +74,7 @@ class Monitor(object):
         back_task = [re.search(r"(\w+)", name.name).group(1) for name in threading.enumerate() if
                      name.name.__contains__("back-task-")]
 
+        # 如果线程的数量小于初始化数量， 则重启线程
         if len(downloader) < downloader_size:
             need_review = [i for i in range(downloader_size) if i not in downloader]
             for index in need_review:

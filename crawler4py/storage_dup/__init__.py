@@ -65,6 +65,7 @@ class BaseStorageDup(Crawler):
         if not message.get("next_pages"):
             process(message, path)
         else:
+            # 非详细页面， 需要先判断临时任务库是否存在，存在则进行处理
             if RedisUtil.monitor_is_exist(message.get("task_id")) and RedisUtil.monitor_ttl(
                     message.get("task_id")) > 10:
                 result = process(message, path)
@@ -77,6 +78,7 @@ class BaseStorageDup(Crawler):
                     Logger.logger.info("所有数据都被排掉， 不添加数据")
             else:
                 Logger.logger.info("监控集合已经消失或者超出监控时间， 不再发送任务")
+        # 每次处理数据， 需要判断当前临时任务的状态， 确定是否关闭
         if not RedisUtil.monitor_score(message.get("task_id")):
             RedisUtil.release_monitor(message.get("task_id"))
             while True:
