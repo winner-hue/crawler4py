@@ -64,7 +64,7 @@ class Redis(object):
 
     def __init_bloom_filter(self, bloom):
         block_num = bloom.get("blocknum") if bloom.get("blocknum") else 1
-        key = bloom.get("key") if bloom.get("key") else "bloomfilter"
+        key = 'dup'
         self.bit_size = 1 << 31  # Redis的String类型最大容量为512M，现使用256M
         self.seeds = [5, 7, 11, 13, 31, 37, 61]
         self.key = key

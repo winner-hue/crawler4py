@@ -21,7 +21,6 @@ setting = {
             "db": 0,
             "bloomfilter": False,
             "blocknum": 1,
-            "key": "bloomfilter"
         },
         "task_monitor": {
             "pwd": None,
