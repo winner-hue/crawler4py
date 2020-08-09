@@ -75,17 +75,17 @@
         + 创建数据库
         
               1. create database crawler4py;
-              2. manager --create_db (注：根据实际情况配置具体参数，参数擦看---manager --help)
+              2. crawler4py --create_db (注：根据实际情况配置具体参数，参数擦看---manager --help)
               
         + 创建任务表
               
               1. 运行table.sql中的内容                
-              2. manager --create_table
+              2. crawler4py --create_table
                 
         + 添加任务
                 
               1. 手动操作数据库添加任务
-              2. manager --add_task --task_url 网址
+              2. crawler4py --add_task --task_url 网址
 
     + 配置setting文件
                       
