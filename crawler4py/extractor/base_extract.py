@@ -31,6 +31,7 @@ class BaseExtract(object):
                 view_source = self.message.get("view_source")
                 extractor = self.get_extractor(view_source, host=host)
                 self.message["extract"] = extractor
+                self.message["is_detail"] = True
                 del self.message["next_pages"]  # 详细页面删掉下一页链接
                 return self.message
         return self.message

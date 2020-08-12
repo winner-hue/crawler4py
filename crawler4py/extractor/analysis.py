@@ -5,7 +5,6 @@ import re
 import tldextract
 
 from crawler4py.extractor.base_extract import BaseExtract
-from crawler4py.log import Logger
 
 
 def process(message, path):
@@ -13,9 +12,12 @@ def process(message, path):
     task_url = message.get("task_url")
     plugin = get_plugin(task_url, task_type, path)
     if plugin:
-        result = get_class(plugin, task_url, message).process()
+        plugin_class = get_class(plugin, task_url, message)
+        result = plugin_class.process()
     else:
-        result = BaseExtract(message).process()
+        plugin_class = BaseExtract(message)
+        result = plugin_class.process()
+    del plugin_class
     return result
 
 

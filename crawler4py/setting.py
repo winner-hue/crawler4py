@@ -13,6 +13,8 @@ setting = {
     "storage_dup_thread_size": 0,
     # 限制下载任务队列的大小， 当超出一定值时， 将不再发送任务至下载队列
     "download_task_size_limit": 2,
+    # 下载器下载失败重试次数
+    "download_again": 3,
     # redis 配置
     "redis": {
         # 排重库配置

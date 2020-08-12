@@ -1,10 +1,10 @@
+import inspect
 import os
 import re
 
 import tldextract
 
-from crawler4py.download.request import request
-from crawler4py.log import Logger
+from crawler4py.download.base_download import BaseDownload
 
 
 def process(message, path):
@@ -12,9 +12,12 @@ def process(message, path):
     task_url = message.get("task_url")
     plugin = get_plugin(task_url, task_type, path)
     if plugin:
-        result = plugin.process(task_url, message)
+        plugin_class = get_class(plugin, task_url, message)
+        result = plugin_class.process()
     else:
-        result = default(task_url, message)
+        plugin_class = BaseDownload(message)
+        result = plugin_class.process()
+    del plugin_class
     return result
 
 
@@ -38,37 +41,34 @@ def get_plugin(task_url, task_type, path):
     return plugin
 
 
+def get_class(task_plugin, task_url, message):
+    """
+    匹配插件
+    :param task_plugin:
+    :param task_url:
+    :param message:
+    :return:
+    """
+    for name, obj in inspect.getmembers(task_plugin):
+        if inspect.isclass(obj):
+            plugin_class = obj(message)
+            for match in plugin_class.re_match:
+                re_result = re.match(match, task_url)
+                if re_result:
+                    if hasattr(obj, 'process'):
+                        return plugin_class
+                    break
+            else:
+                continue
+            del plugin_class
+        else:
+            continue
+        break
+
+
 def get_path(task_type, path):
     if task_type:
         new_path = path + "." + str(task_type)
     else:
         new_path = path
     return new_path
-
-
-def default(task_url, message):
-    header = message.get("header")
-    # 下载默认重试3次
-    for i in range(3):
-        try:
-            if header:
-                r = request.get(task_url, header)
-            else:
-                r = request.get(task_url)
-            if r.status_code > 400:
-                message["recovery_flag"] = message["recovery_flag"] + 1 if message["recovery_flag"] else 1
-            else:
-                if message.get("task_encode"):
-                    message["view_source"] = r.content.decode(message.get("task_encode"))
-                else:
-                    try:
-                        # 自动匹配页面编码格式进行解码
-                        encoding = re.search("charset=([a-zA-Z1-9\-]+)", r.text).group(1)
-                        message["view_source"] = r.content.decode(encoding, errors="ignore")
-                    except AttributeError:
-                        message["view_source"] = str(r.content, r.encoding, errors='ignore')
-            return message
-        except Exception as e:
-            Logger.logger.error("---{}---下载失败， 当前下载次数{}: {}".format(task_url, i + 1, e.with_traceback(None)))
-    message["recovery_flag"] = message.get("recovery_flag") + 1 if message.get("recovery_flag") else 1
-    return message
