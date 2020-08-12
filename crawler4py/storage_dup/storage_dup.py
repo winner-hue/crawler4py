@@ -1,14 +1,8 @@
-import hashlib
 import inspect
 import os
 import re
 
 import tldextract
-from pymongo.errors import DuplicateKeyError
-
-from crawler4py.log import Logger
-from crawler4py.util.mongoutil import MongoUtil
-from crawler4py.util.redisutil import RedisUtil
 
 
 def process(message, path):
