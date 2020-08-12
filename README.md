@@ -183,13 +183,13 @@
           为不同的站点开发相应的插件， 需要配置setting的plugins。在配置好文件目录、以及任务类型（可选）。具体可以参照项目中plugins文件夹的配置方式
           下载器插件：
                按照网址域名编写py文件， 例如域名为baidu.com, 则py文件应为baidu_com.py
-               接着只需要在文件中定义process(task_url, message) 方法， 便可以更改下载逻辑
+               接着在文件中定义自己的类，类名没有限制，但是需要继承基类 BaseDownload， 按照自己的需要，实现不同的逻辑，必须重写process方法
           提取插件：
                按照网址域名编写py文件， 例如域名为baidu.com, 则py文件应为baidu_com.py
-               接着在文件中定义自己的类，类名没有限制，但是需要继承基类 BaseExtract， 按照自己的需要，实现不同的逻辑
+               接着在文件中定义自己的类，类名没有限制，但是需要继承基类 BaseExtract， 按照自己的需要，实现不同的逻辑，必须重写process方法
           排重入库插件：
                按照网址域名编写py文件， 例如域名为baidu.com, 则py文件应为baidu_com.py
-               接着只需要在文件中定义process(task_url, message) 方法， 便可以更改下载逻辑
+               接着在文件中定义自己的类，类名没有限制，但是需要继承基类 BaseStorageDup， 按照自己的需要，实现不同的逻辑，必须重写process方法
           
           
   
