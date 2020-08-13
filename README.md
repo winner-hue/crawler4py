@@ -75,7 +75,7 @@
         + 创建数据库
         
               1. create database crawler4py;
-              2. crawler4py --create_db (注：根据实际情况配置具体参数，参数擦看---manager --help)
+              2. crawler4py --create_db (注：根据实际情况配置具体参数，参数查看 --help)
               
         + 创建任务表
               
