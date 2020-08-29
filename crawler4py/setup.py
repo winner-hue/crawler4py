@@ -45,6 +45,7 @@ setup(
         'text-unidecode>=1.3',
         'tldextract>=2.2.2',
         'urllib3>=1.25.9',
+        'loguru>=0.5.0'
 
     ],
     entry_points={'console_scripts': [
