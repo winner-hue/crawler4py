@@ -9,7 +9,7 @@ def connect_sql(**kwargs):
     host = kwargs.get("host") if kwargs.get("host") else "127.0.0.1"
     user = kwargs.get("user") if kwargs.get("user") else "crawler4py"
     password = kwargs.get("password") if kwargs.get("password") else "crawler4py"
-    port = kwargs.get("port") if kwargs.get("port") else 3306
+    port = int(kwargs.get("port")) if kwargs.get("port") else 3306
     if not kwargs.get("db"):
         database = kwargs.get("db_name") if kwargs.get("db_name") else "crawler4py"
         conn = pymysql.connect(host=host, user=user, password=password, database=database, port=port)
