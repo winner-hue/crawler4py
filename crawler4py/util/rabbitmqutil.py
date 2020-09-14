@@ -1,6 +1,15 @@
 import pika
+from crawler4py.crawler import Crawler
 
 from crawler4py.log import Logger
+
+mq = Crawler.crawler_setting.get("mq")
+if mq:
+    virtual_host = mq.get("virtual_host")
+    if not virtual_host:
+        virtual_host = 'crawler4py'
+else:
+    virtual_host = 'crawler4py'
 
 
 def connect(queue_name, user, pwd, host, port, exchange=None, exchange_type=None):
@@ -18,7 +27,7 @@ def connect(queue_name, user, pwd, host, port, exchange=None, exchange_type=None
     credentials = pika.PlainCredentials(user, pwd)
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(host=host, port=port,
-                                  virtual_host='crawler4py',
+                                  virtual_host=virtual_host,
                                   credentials=credentials))
     channel = connection.channel()
     if exchange_type is None:

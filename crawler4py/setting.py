@@ -52,7 +52,8 @@ setting = {
         "port": 5672,
         "user": "crawler4py",
         "pwd": "crawler4py",
-        "api_port": 15672
+        "api_port": 15672,
+        "virtual_host": "/"
     },
     # mysql 配置
     "sql": {
