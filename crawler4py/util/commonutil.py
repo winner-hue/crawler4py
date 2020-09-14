@@ -60,9 +60,11 @@ def find_plugin(plugin, path, fqdn_domain, registered_domain):
         try:
             plugin = __import__(path + "." + fqdn_domain.replace(".py", ""), globals(), locals(),
                                 [fqdn_domain.replace(".py", "")])
+            return plugin
         except:
             plugin = __import__(path + "." + registered_domain.replace(".py", ""), globals(), locals(),
                                 [registered_domain.replace(".py", "")])
+            return plugin
     except Exception as e:
         return plugin
 
