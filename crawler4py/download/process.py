@@ -1,10 +1,8 @@
 import inspect
-import os
 import re
 
-import tldextract
-
 from crawler4py.download.base_download import BaseDownload
+from crawler4py.util.commonutil import get_plugin
 
 
 def process(message, path):
@@ -19,26 +17,6 @@ def process(message, path):
         result = plugin_class.process()
     del plugin_class
     return result
-
-
-def get_plugin(task_url, task_type, path):
-    registered_domain = tldextract.extract(task_url).registered_domain.replace(".", "_") + ".py"
-    fqdn_domain = tldextract.extract(task_url).fqdn.replace(".", "_") + ".py"
-    plugin = None
-    if path:
-        path = get_path(task_type, path)
-        try:
-            plugins = os.listdir(path.replace(".", "/"))
-        except FileNotFoundError as e:
-            return plugin
-        if fqdn_domain in plugins:
-            plugin = __import__(path + "." + fqdn_domain.replace(".py", ""), globals(), locals(),
-                                [fqdn_domain.replace(".py", "")])
-        if registered_domain in plugins:
-            plugin = __import__(path + "." + registered_domain.replace(".py", ""), globals(), locals(),
-                                [registered_domain.replace(".py", "")])
-
-    return plugin
 
 
 def get_class(task_plugin, task_url, message):
@@ -64,11 +42,3 @@ def get_class(task_plugin, task_url, message):
         else:
             continue
         break
-
-
-def get_path(task_type, path):
-    if task_type:
-        new_path = path + "." + str(task_type)
-    else:
-        new_path = path
-    return new_path

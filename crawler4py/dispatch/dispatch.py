@@ -149,7 +149,7 @@ class Dispatch(Crawler):
     @get_data
     def call_back(ch, method, properties, body):
         """
-        rabitmq 回调消费者汉书， 如果有next_pages 则为生成任务， 没有则为回收任务
+        rabitmq 回调消费者函数， 如果有next_pages 则为生成任务， 没有则为回收任务
         :param ch:
         :param method:
         :param properties:
@@ -175,4 +175,4 @@ class Dispatch(Crawler):
                 is_send(mq_params, Dispatch.crawler_setting, mq_queue)
                 send_data(ch, '', repr(message), mq_queue)
         else:
-            send_data(ch, '', repr(message), 'download')
+            send_data(ch, '', repr(message), get_queue(Dispatch.crawler_setting, 'download'))
