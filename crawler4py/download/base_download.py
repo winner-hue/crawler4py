@@ -17,12 +17,14 @@ class BaseDownload(object):
         return self.default()
 
     def mark_flag(self):
-        self.message["recovery_flag"] = self.message["recovery_flag"] + 1 if self.message[
-            "recovery_flag"] else 1
+        if self.message.get("recovery_flag"):
+            self.message["recovery_flag"] = self.message["recovery_flag"] + 1
+        else:
+            self.message["recovery_flag"] = 1
 
     def default_download(self, header, task_url):
         if header:
-            r = request.get(task_url, header)
+            r = request.get(task_url, headers=header)
         else:
             r = request.get(task_url)
         return r
@@ -42,6 +44,7 @@ class BaseDownload(object):
         task_url = self.message.get("task_url")
         header = self.message.get("header")
         # 下载默认重试3次
+        r = None
         for i in range(self.download_again):
             try:
                 r = self.default_download(header, task_url)
@@ -52,5 +55,6 @@ class BaseDownload(object):
                 return self.message
             except Exception as e:
                 Logger.logger.error("---{}---下载失败， 当前下载次数{}: {}".format(task_url, i + 1, e.with_traceback(None)))
-                self.mark_flag()
+        if not r:
+            self.mark_flag()
         return self.message

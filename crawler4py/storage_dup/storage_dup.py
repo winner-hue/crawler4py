@@ -27,7 +27,7 @@ def get_class(task_plugin, task_url, message):
     :param message:
     :return:
     """
-    for name, obj in inspect.getmembers(task_plugin)[::-1]:
+    for name, obj in inspect.getmembers(task_plugin):
         if inspect.isclass(obj):
             plugin_class = obj(message)
             for match in plugin_class.re_match:
