@@ -33,6 +33,9 @@ def is_send(mq_params, setting, mq_queue):
             "http://{}:{}/api/queues/crawler4py/{}/".format(mq_params[2], mq_params[4], mq_queue),
             auth=(mq_params[0], mq_params[1])).json().get("messages")
 
+        if not messages:
+            messages = 0
+
         size = get_download_task_size_limit(setting)
         if messages < size:
             Logger.logger.info("当前队列大小：{}".format(messages))

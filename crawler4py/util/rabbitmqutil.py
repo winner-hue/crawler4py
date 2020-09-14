@@ -3,14 +3,6 @@ from crawler4py.crawler import Crawler
 
 from crawler4py.log import Logger
 
-mq = Crawler.crawler_setting.get("mq")
-if mq:
-    virtual_host = mq.get("virtual_host")
-    if not virtual_host:
-        virtual_host = 'crawler4py'
-else:
-    virtual_host = 'crawler4py'
-
 
 def connect(queue_name, user, pwd, host, port, exchange=None, exchange_type=None):
     """
@@ -24,6 +16,14 @@ def connect(queue_name, user, pwd, host, port, exchange=None, exchange_type=None
     :param exchange_type:
     :return:
     """
+    mq = Crawler.crawler_setting.get("mq")
+    if mq:
+        virtual_host = mq.get("virtual_host")
+        if not virtual_host:
+            virtual_host = 'crawler4py'
+    else:
+        virtual_host = 'crawler4py'
+
     credentials = pika.PlainCredentials(user, pwd)
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(host=host, port=port,

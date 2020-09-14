@@ -13,6 +13,9 @@ class BaseExtract(object):
         view_source = message.get("view_source")
         self.bf = BeautifulSoup(view_source, "lxml")
         self.html = html.fromstring(view_source)
+        self.init()
+
+    def init(self):
         # 用来匹配适合的插件类，用来解析匹配的页面
         self.re_match = ['http']
         # 用来匹配需要抓取的页面
