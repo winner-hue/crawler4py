@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup(
     name="crawler4py",
-    version="0.5",
+    version="0.6",
     author="winner-hub",
     author_email="1344246287@qq.com",
     description=("A distributed crawler framework based on Python"),

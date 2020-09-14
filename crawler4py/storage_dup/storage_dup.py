@@ -1,6 +1,7 @@
 import inspect
 import re
 
+from crawler4py.storage_dup.base_storage_dup import BaseStorageDup
 from crawler4py.util.commonutil import get_plugin
 
 
@@ -12,7 +13,7 @@ def process(message, path):
         plugin_class = get_class(plugin, task_url, message)
         result = plugin_class.process()
     else:
-        plugin_class = get_class(plugin, task_url, message)
+        plugin_class = BaseStorageDup(message)
         result = plugin_class.process()
     del plugin_class
     return result
