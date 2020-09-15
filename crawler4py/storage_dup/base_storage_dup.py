@@ -23,12 +23,12 @@ class BaseStorageDup(object):
                     not RedisUtil.is_exist(task_id, url_id) and \
                     not RedisUtil.is_contains(url_id):
                 next_pages_detail.append(result)
-                if result.get("is_detail"):
-                    RedisUtil.monitor_insert(task_id, 10,
-                                             hashlib.md5(result.get("url").encode("utf-8")).hexdigest())
-                else:
-                    RedisUtil.monitor_insert(task_id, 100,
-                                             hashlib.md5(result.get("url").encode("utf-8")).hexdigest())
+                # if result.get("is_detail"):
+                RedisUtil.monitor_insert(task_id, 10,
+                                         hashlib.md5(result.get("url").encode("utf-8")).hexdigest())
+                # else:
+                #     RedisUtil.monitor_insert(task_id, 100,
+                #                              hashlib.md5(result.get("url").encode("utf-8")).hexdigest())
         return next_pages_detail
 
     def storage(self, task_url):
@@ -47,6 +47,8 @@ class BaseStorageDup(object):
         task_url = self.message.get("task_url")
         # 非详细页面， 判断是否需要下发
         if not self.message.get("is_detail"):
+            RedisUtil.monitor_insert(self.message.get("task_id"), 100,
+                                     hashlib.md5(task_url.encode("utf-8")).hexdigest())
             next_pages_detail = []
             task_id = self.message.get("task_id")
             next_pages_detail = self.dup(task_id, next_pages_detail)

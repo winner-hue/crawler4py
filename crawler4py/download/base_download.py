@@ -22,9 +22,9 @@ class BaseDownload(object):
         else:
             self.message["recovery_flag"] = 1
 
-    def default_download(self, header, task_url):
+    def default_download(self, header, task_url, **kwargs):
         if header:
-            r = request.get(task_url, headers=header)
+            r = request.get(task_url, headers=header, **kwargs)
         else:
             r = request.get(task_url)
         return r

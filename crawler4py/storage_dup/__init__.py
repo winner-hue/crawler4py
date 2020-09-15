@@ -1,3 +1,4 @@
+import hashlib
 import time
 import uuid
 from threading import Thread
@@ -69,7 +70,6 @@ class BaseStorageDup(Crawler):
             if RedisUtil.monitor_is_exist(message.get("task_id")) and RedisUtil.monitor_ttl(
                     message.get("task_id")) > 10:
                 result = process(message, path)
-
                 if len(message.get("next_pages")):
                     mq_queue = get_queue(BaseStorageDup.crawler_setting, 'dispatch')
                     send_data(ch, '', repr(result), mq_queue)
