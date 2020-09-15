@@ -90,7 +90,6 @@ class Downloader(Crawler):
                             RedisUtil.release_monitor(message.get("task_id"))
                             break
                         time.sleep(0.3)
-
                 # 进行判断， 如果redis临时任务库中所有的数据的分没有10， 则关闭任务（注：分值为10表示详细页面， 分值为100表示列表页面）
                 if not RedisUtil.monitor_score(message.get("task_id")):
                     RedisUtil.release_monitor(message.get("task_id"))
