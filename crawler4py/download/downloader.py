@@ -1,31 +1,22 @@
+import datetime
 import hashlib
 import time
 import uuid
 from threading import Thread
 
-import datetime
-from crawler4py.download.request import request
+from crawler4py.crawler import Crawler
 from crawler4py.download.process import process
 from crawler4py.log import Logger
-from crawler4py.crawler import Crawler
 from crawler4py.util.commonutil import get_plugin_path
 from crawler4py.util.rabbitmqutil import connect, get_data, send_data, get_queue
 from crawler4py.util.redisutil import RedisUtil
-from crawler4py.util.running_params import task_q, html_q, data_q
 from crawler4py.util.sqlutil import SqlUtil
 
 
 class Downloader(Crawler):
 
     def simple(self):
-        while not task_q.empty() or not html_q.empty() or not data_q.empty():
-            task_url = task_q.get()
-            Logger.logger.info(task_url)
-            r = request.get(task_url)
-            Logger.logger.info(r.request.headers)
-            Logger.logger.info("status code: {}".format(r.status_code))
-        else:
-            Logger.logger.info("监测到退出信号，开始退出。。。")
+        pass
 
     def run(self):
         try:

@@ -1,7 +1,8 @@
 import re
 
+import requests
+
 from crawler4py.crawler import Crawler
-from crawler4py.download.request import request
 from crawler4py.log import Logger
 
 
@@ -24,9 +25,9 @@ class BaseDownload(object):
 
     def default_download(self, header, task_url, **kwargs):
         if header:
-            r = request.get(task_url, headers=header, **kwargs)
+            r = requests.get(task_url, headers=header, **kwargs)
         else:
-            r = request.get(task_url)
+            r = requests.get(task_url)
         return r
 
     def get_view_source(self, r):

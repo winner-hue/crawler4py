@@ -134,7 +134,7 @@ class Dispatch(Crawler):
         """
         mq_queue = get_queue(self.crawler_setting, "dispatch")
         mq_conn_download = connect(mq_queue, self.mq_params[0], self.mq_params[1], self.mq_params[2], self.mq_params[3])
-        self.call_back(**{"no_ack": None, "channel": mq_conn_download, "routing_key": mq_queue})
+        self._generate_task(**{"no_ack": None, "channel": mq_conn_download, "routing_key": mq_queue})
 
     def back_task(self):
         """
@@ -143,11 +143,18 @@ class Dispatch(Crawler):
         """
         mq_queue = get_queue(self.crawler_setting, "recovery")
         mq_conn_recovery = connect(mq_queue, self.mq_params[0], self.mq_params[1], self.mq_params[2], self.mq_params[3])
-        self.call_back(**{"no_ack": None, "channel": mq_conn_recovery, "routing_key": mq_queue})
+        self._back_task(**{"no_ack": None, "channel": mq_conn_recovery, "routing_key": mq_queue})
 
     @staticmethod
     @get_data
-    def call_back(ch, method, properties, body):
+    def _back_task(ch, method, properties, body):
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        message: dict = eval(body.decode())
+        send_data(ch, '', repr(message), get_queue(Dispatch.crawler_setting, 'download'))
+
+    @staticmethod
+    @get_data
+    def _generate_task(ch, method, properties, body):
         """
         rabitmq 回调消费者函数， 如果有next_pages 则为生成任务， 没有则为回收任务
         :param ch:
@@ -174,5 +181,3 @@ class Dispatch(Crawler):
                 mq_params = get_login_info(Dispatch.crawler_setting)
                 is_send(mq_params, Dispatch.crawler_setting, mq_queue)
                 send_data(ch, '', repr(message), mq_queue)
-        else:
-            send_data(ch, '', repr(message), get_queue(Dispatch.crawler_setting, 'download'))

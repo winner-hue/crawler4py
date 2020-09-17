@@ -1,8 +1,8 @@
 import time
 
+import requests
 import tldextract
 
-from crawler4py.download.request import request
 from crawler4py.log import Logger
 
 
@@ -29,7 +29,7 @@ def get_download_task_size_limit(setting):
 
 def is_send(mq_params, setting, mq_queue):
     while True:
-        messages = request.get(
+        messages = requests.get(
             "http://{}:{}/api/queues/crawler4py/{}/".format(mq_params[2], mq_params[4], mq_queue),
             auth=(mq_params[0], mq_params[1])).json().get("messages")
 

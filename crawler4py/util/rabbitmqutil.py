@@ -28,7 +28,8 @@ def connect(queue_name, user, pwd, host, port, exchange=None, exchange_type=None
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(host=host, port=port,
                                   virtual_host=virtual_host,
-                                  credentials=credentials))
+                                  credentials=credentials,
+                                  heartbeat=0))
     channel = connection.channel()
     if exchange_type is None:
         channel.queue_declare(queue=queue_name, durable=True)
